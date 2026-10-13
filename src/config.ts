@@ -15,6 +15,7 @@ export const PORTFOLIO_CONFIG = {
     linkedin: "https://www.linkedin.com/in/mary-ardientes-aa8598315",
     githubUsername: "mardnts28",
     githubUrl: "https://github.com/mardnts28",
+    photo: "/images/profile.jpg",
   },
   projects: {
     rice: {

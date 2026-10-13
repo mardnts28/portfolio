@@ -460,6 +460,44 @@ function Footer() {
   )
 }
 
+function PortraitPhoto() {
+  const [imgError, setImgError] = useState(false)
+  const photo = PORTFOLIO_CONFIG.profile.photo
+
+  return (
+    <div className="portrait-container">
+      <div
+        className="portrait"
+        role="img"
+        aria-label="Professional photo of Mary Faith Ardientes"
+      >
+        {photo && !imgError ? (
+          <img
+            src={photo}
+            alt={PORTFOLIO_CONFIG.profile.name}
+            className="portrait-img"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="portrait-placeholder-content">
+            <span className="portrait-tag">[ PHOTO ]</span>
+            <small className="portrait-sub">.:*:+:.</small>
+            <span className="portrait-hint">
+              Drop photo to:
+              <br />
+              <code style={{ fontSize: "9px" }}>public/images/profile.jpg</code>
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="portrait-caption">
+        <span>MARY FAITH P. ARDIENTES</span>
+        <small>TIP MANILA &bull; BS IT '27</small>
+      </div>
+    </div>
+  )
+}
+
 function Home({ navigate }: { navigate: (page: Page) => void }) {
   return (
     <>
@@ -500,35 +538,7 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
             </InlineLink>
           </div>
         </div>
-        <div className="portrait" role="img" aria-label="Terminal Avatar">
-          <pre
-            style={{
-              margin: 0,
-              fontSize: "11px",
-              lineHeight: 1.25,
-              textAlign: "center",
-            }}
-          >
-            {`  +------------------+
-  |  [ MFA / 2026 ]  |
-  |                  |
-  |     o      o     |
-  |        <         |
-  |     \\______/     |
-  |                  |
-  | DATA & IT ENGR   |
-  +------------------+`}
-          </pre>
-          <small
-            style={{
-              marginTop: "12px",
-              color: "var(--ink-muted)",
-              fontSize: "11px",
-            }}
-          >
-            TIP MANILA &bull; BS IT '27
-          </small>
-        </div>
+        <PortraitPhoto />
       </section>
       <Divider type="A" />
       <Section>
