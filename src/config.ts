@@ -6,7 +6,7 @@
 export const PORTFOLIO_CONFIG = {
   profile: {
     name: "Mary Faith P. Ardientes",
-    displayName: "M A R Y   F A I T H   A R D I E N T E S",
+    displayName: "M A R Y    F A I T H\nA R D I E N T E S",
     title: "IT Student & Data Analyst",
     location: "Manila, Philippines",
     school: "Technological Institute of the Philippines - Manila",

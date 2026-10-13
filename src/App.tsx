@@ -466,9 +466,23 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
       <section className="hero">
         <div className="hero-copy">
           <h1 className="display-name">
-            {PORTFOLIO_CONFIG.profile.displayName}
-            <Cursor />
+            <span style={{ display: "block" }}>
+              M A R Y&nbsp;&nbsp;&nbsp;&nbsp;F A I T H
+            </span>
+            <span style={{ display: "block" }}>
+              A R D I E N T E S<Cursor />
+            </span>
           </h1>
+          <div>
+            <a
+              href={PORTFOLIO_CONFIG.profile.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hero-username-tag"
+            >
+              @{PORTFOLIO_CONFIG.profile.githubUsername}
+            </a>
+          </div>
           <SelectedParagraph hero>
             Aspiring data analyst and 4th-year IT student who turns data into
             useful insights and builds practical software for real-world

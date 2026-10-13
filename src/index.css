@@ -153,12 +153,33 @@ textarea:focus-visible {
 
 .display-name {
   max-width: 1160px;
-  margin: 0 0 64px;
+  margin: 0 0 16px;
   font-size: 48px;
   font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: 0.5em;
+  line-height: 1.25;
+  letter-spacing: 0.35em;
   overflow-wrap: anywhere;
+}
+
+.hero-username-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 36px;
+  font-size: 14px;
+  letter-spacing: 0.15em;
+  color: var(--ink-muted);
+  text-decoration: none;
+  border: 1px solid var(--ink-line);
+  padding: 4px 14px;
+  background: rgba(169, 194, 176, 0.15);
+  transition: all 0.2s;
+}
+
+.hero-username-tag:hover {
+  background: var(--ink-primary);
+  color: var(--invert-text);
+  border-color: var(--ink-primary);
 }
 
 .portrait {
