@@ -1160,3 +1160,118 @@ textarea:focus-visible {
   }
 }
 
+/* ==========================================================================
+   Enriched Projects Overview & Media Viewers
+   ========================================================================== */
+.project-main-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.project-summary {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-muted);
+  text-transform: none;
+  line-height: 1.45;
+}
+
+.project-row:hover .project-summary,
+.project-row:focus-visible .project-summary {
+  color: rgba(246, 248, 242, 0.85);
+}
+
+.project-metric-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-cursor);
+  border: 1px solid var(--accent-cursor);
+  padding: 2px 8px;
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.project-row:hover .project-metric-badge,
+.project-row:focus-visible .project-metric-badge {
+  color: var(--invert-text);
+  border-color: var(--invert-text);
+}
+
+.case-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.breadcrumb-btn {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: var(--ink-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.breadcrumb-btn:hover {
+  color: var(--invert-text);
+  background: var(--invert-bg);
+  text-decoration: none;
+}
+
+.media-toggle-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.media-toggle-btn {
+  padding: 6px 14px;
+  font-size: 12px;
+  border: 1px solid var(--ink-line);
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.media-toggle-btn.active {
+  background: var(--ink-primary);
+  color: var(--invert-text);
+  border-color: var(--ink-primary);
+}
+
+.real-screenshot-frame {
+  border: 1px solid var(--ink-primary);
+  background: #fff;
+  padding: 12px;
+  box-shadow: 4px 4px 0px var(--ink-line);
+  margin-top: 12px;
+}
+
+.real-screenshot-frame img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.screenshot-empty-notice {
+  padding: 28px 20px;
+  text-align: center;
+  background: rgba(169, 194, 176, 0.12);
+  border: 1px dashed var(--ink-line);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.screenshot-empty-notice code {
+  background: rgba(11, 61, 30, 0.1);
+  padding: 2px 6px;
+  font-weight: 600;
+}
+
+

@@ -17,6 +17,18 @@ const routes: Record<string, Page> = {
   "/notes": "notes",
 }
 
+function getCleanPath(): string {
+  if (typeof window === "undefined") return "/"
+  if (window.location.hash && window.location.hash.startsWith("#/")) {
+    return window.location.hash.slice(1)
+  }
+  let path = window.location.pathname || "/"
+  path = path.replace(/^\/(portfolio|Portfolio)/i, "")
+  if (!path.startsWith("/")) path = "/" + path
+  if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1)
+  return path
+}
+
 const pagePaths: Partial<Record<Page, string>> = Object.fromEntries(
   Object.entries(routes).map(([path, page]) => [page, path]),
 )
@@ -325,6 +337,8 @@ function Tag({ children }: { children: ReactNode }) {
 type Project = {
   index: string
   title: string
+  summary: string
+  metric: string
   tags: string[]
   year: string
   page: Page
@@ -335,7 +349,10 @@ const projects: Project[] = [
   {
     index: "01",
     title: "Philippine Rice Market Outlook",
-    tags: ["Python", "Power BI", "Forecasting"],
+    summary:
+      "Predictive price forecasting across 18 PSA regions with Holt-Winters seasonal exponential smoothing & Power BI telemetry.",
+    metric: "3.6% MAPE",
+    tags: ["Python", "Power BI", "Forecasting", "DAX"],
     year: "2026",
     page: "rice",
     category: "Data",
@@ -343,7 +360,10 @@ const projects: Project[] = [
   {
     index: "02",
     title: "CLARO: AI-Powered Mobile App",
-    tags: ["Flutter", "YOLOv8", "Firebase"],
+    summary:
+      "Real-time edge computer vision (YOLOv8s) & bilingual Gemini AI voice dietary advisory piloted with 50 supermarket shoppers.",
+    metric: "98.55% mAP@50",
+    tags: ["Flutter", "YOLOv8", "TFLite", "Gemini API"],
     year: "2026",
     page: "claro",
     category: "AI and Mobile",
@@ -351,7 +371,10 @@ const projects: Project[] = [
   {
     index: "03",
     title: "HNL Construction Website",
-    tags: ["Next.js", "TypeScript", "Sanity CMS"],
+    summary:
+      "Full-stack client corporate portal with dynamic architectural quotation estimator, PostgreSQL lead capture, and Sanity CMS.",
+    metric: "100% Lighthouse",
+    tags: ["Next.js", "TypeScript", "Sanity CMS", "PostgreSQL"],
     year: "2026",
     page: "hnl",
     category: "Web",
@@ -375,7 +398,11 @@ function ProjectIndexRow({
       }}
     >
       <span className="project-index">{project.index}</span>
-      <strong>{project.title}</strong>
+      <div className="project-main-info">
+        <strong>{project.title}</strong>
+        <p className="project-summary">{project.summary}</p>
+        <span className="project-metric-badge">{project.metric}</span>
+      </div>
       <span className="project-tags">
         {project.tags.map((tag) => (
           <Tag key={tag}>{tag}</Tag>
@@ -785,6 +812,84 @@ type ProjectLink = {
   external?: boolean
 }
 
+function ProjectMediaViewer({
+  simulator,
+  imageSrc,
+  imageAlt,
+  title,
+}: {
+  simulator: ReactNode
+  imageSrc?: string
+  imageAlt: string
+  title: string
+}) {
+  const [tab, setTab] = useState<"simulator" | "screenshot">("simulator")
+  const [imgError, setImgError] = useState(false)
+
+  return (
+    <div>
+      <div className="media-toggle-bar">
+        <button
+          className={`media-toggle-btn ${tab === "simulator" ? "active" : ""}`}
+          onClick={() => setTab("simulator")}
+        >
+          [ Interactive Simulator ]
+        </button>
+        <button
+          className={`media-toggle-btn ${tab === "screenshot" ? "active" : ""}`}
+          onClick={() => setTab("screenshot")}
+        >
+          [ Real Screenshot / Production Proof ]
+        </button>
+      </div>
+
+      {tab === "simulator" ? (
+        simulator
+      ) : (
+        <div className="real-screenshot-frame">
+          {imageSrc && !imgError ? (
+            <div>
+              <img
+                src={imageSrc}
+                alt={imageAlt}
+                onError={() => setImgError(true)}
+              />
+              <p
+                style={{
+                  margin: "8px 0 0",
+                  fontSize: "11px",
+                  color: "var(--ink-muted)",
+                  textAlign: "center",
+                }}
+              >
+                Production artifact: {imageAlt}
+              </p>
+            </div>
+          ) : (
+            <div className="screenshot-empty-notice">
+              <strong>[ REAL SCREENSHOT PREVIEW READY ]</strong>
+              <p style={{ margin: "8px 0 4px" }}>
+                To display your real screenshot for {title}, place your image
+                at:
+              </p>
+              <code>{imageSrc || "public/images/project.png"}</code>
+              <p
+                style={{
+                  margin: "8px 0 0",
+                  fontSize: "11px",
+                  color: "var(--ink-muted)",
+                }}
+              >
+                The website will automatically load and display it here!
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function CaseStudy({
   title,
   meta,
@@ -808,6 +913,13 @@ function CaseStudy({
 }) {
   return (
     <>
+      <div className="case-breadcrumb">
+        <button onClick={() => navigate("projects")} className="breadcrumb-btn">
+          &lt; Back to all projects
+        </button>
+        <span className="breadcrumb-divider">/</span>
+        <span className="breadcrumb-current">{title.split(":")[0]}</span>
+      </div>
       <section className="case-header">
         <h1 className="case-title">{title}</h1>
         <MetaTable rows={meta} />
@@ -1691,7 +1803,14 @@ function Rice({ navigate }: { navigate: (page: Page) => void }) {
         "Holt-Winters Forecasting",
         "NASA POWER API",
       ]}
-      showcase={<RiceDashboardShowcase />}
+      showcase={
+        <ProjectMediaViewer
+          title="Philippine Rice Market Outlook"
+          simulator={<RiceDashboardShowcase />}
+          imageSrc="/images/rice-dashboard.png"
+          imageAlt="Power BI Retail Rice Market Forecast Dashboard"
+        />
+      }
       links={[
         {
           label: "GitHub Repository (Python & Data Pipeline)",
@@ -1753,7 +1872,14 @@ function Claro({ navigate }: { navigate: (page: Page) => void }) {
         "Gemini API",
         "Mobile OCR",
       ]}
-      showcase={<ClaroMobileShowcase />}
+      showcase={
+        <ProjectMediaViewer
+          title="CLARO AI Mobile App"
+          simulator={<ClaroMobileShowcase />}
+          imageSrc="/images/claro-app.png"
+          imageAlt="CLARO Mobile Application Detection & Grocery Field Testing"
+        />
+      }
       links={[
         {
           label: "GitHub Repository (Flutter & YOLOv8 Weights)",
@@ -1804,7 +1930,14 @@ function Hnl({ navigate }: { navigate: (page: Page) => void }) {
         "Sanity CMS",
         "Resend",
       ]}
-      showcase={<HnlWebsiteShowcase />}
+      showcase={
+        <ProjectMediaViewer
+          title="HNL Construction Platform"
+          simulator={<HnlWebsiteShowcase />}
+          imageSrc="/images/hnl-website.png"
+          imageAlt="HNL Construction Responsive Website & Sanity CMS Studio"
+        />
+      }
       links={[
         {
           label: "Live Client Website (HNL Construction)",
@@ -2372,9 +2505,7 @@ function Boot({ onDone }: { onDone: () => void }) {
 }
 
 function App() {
-  const [page, setPage] = useState<Page>(
-    () => routes[window.location.pathname] || "home",
-  )
+  const [page, setPage] = useState<Page>(() => routes[getCleanPath()] || "home")
   const [menuOpen, setMenuOpen] = useState(false)
   const [wiping, setWiping] = useState(false)
   const [booting, setBooting] = useState(
@@ -2382,9 +2513,13 @@ function App() {
   )
 
   useEffect(() => {
-    const pop = () => setPage(routes[window.location.pathname] || "home")
+    const pop = () => setPage(routes[getCleanPath()] || "home")
     window.addEventListener("popstate", pop)
-    return () => window.removeEventListener("popstate", pop)
+    window.addEventListener("hashchange", pop)
+    return () => {
+      window.removeEventListener("popstate", pop)
+      window.removeEventListener("hashchange", pop)
+    }
   }, [])
 
   const finishBoot = () => {
@@ -2401,7 +2536,9 @@ function App() {
     setWiping(true)
     window.setTimeout(
       () => {
-        window.history.pushState({}, "", path)
+        const basePath =
+          window.location.pathname.match(/^\/(portfolio|Portfolio)/i)?.[0] || ""
+        window.history.pushState({}, "", basePath + path)
         setPage(next)
         setWiping(false)
         window.scrollTo(0, 0)
