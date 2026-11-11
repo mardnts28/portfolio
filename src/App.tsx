@@ -1,13 +1,14 @@
 import { FormEvent, ReactNode, useEffect, useRef, useState } from "react"
 import { PORTFOLIO_CONFIG } from "./config"
 
-type Page = "home" | "about" | "projects" | "rice" | "claro" | "hnl" | "skills" | "achievements" | "resume" | "contact" | "notes" | "404"
+type Page = "home" | "about" | "projects" | "rice" | "readmission" | "claro" | "hnl" | "skills" | "achievements" | "resume" | "contact" | "notes" | "404"
 
 const routes: Record<string, Page> = {
   "/": "home",
   "/about": "about",
   "/projects": "projects",
   "/projects/rice-market-outlook": "rice",
+  "/projects/readmission-risk": "readmission",
   "/projects/claro": "claro",
   "/projects/hnl-construction": "hnl",
   "/skills": "skills",
@@ -100,10 +101,10 @@ function TopBar({
       <button className="brand" onClick={() => navigate("home")}>
         {PORTFOLIO_CONFIG.profile.name}
       </button>
-      <span className="edition">Portfolio 2026</span>
+      <span className="edition">BUILD:2026</span>
       <span className="clock">MNL {time}</span>
       <button className="menu-trigger" onClick={onMenu}>
-        Menu
+        [ MENU ]
       </button>
     </header>
   )
@@ -133,7 +134,7 @@ function MenuOverlay({
       aria-label="Site navigation"
     >
       <button className="menu-close" onClick={onClose} autoFocus>
-        Close [X]
+        [ ESC / CLOSE X ]
       </button>
       <nav className="menu-list">
         {menuItems.map(([number, label, page]) => (
@@ -254,10 +255,12 @@ function BracketButton({
   children,
   type = "button",
   onClick,
+  disabled,
 }: {
   children: string
   type?: "button" | "submit"
   onClick?: () => void
+  disabled?: boolean
 }) {
   return (
     <button
@@ -265,6 +268,8 @@ function BracketButton({
       type={type}
       data-label={children}
       onClick={onClick}
+      disabled={disabled}
+      style={disabled ? { opacity: 0.6, cursor: "not-allowed" } : undefined}
     >
       <span data-label={children}>[ {children} ]</span>
     </button>
@@ -274,12 +279,19 @@ function BracketButton({
 function TimeTable({ rows }: { rows: Array<[string, string]> }) {
   return (
     <div className="time-table">
-      {rows.map(([date, label], index) => (
-        <div className="time-row" key={`${date}-${index}`}>
-          <strong>{date}</strong>
-          <span>{label}</span>
-        </div>
-      ))}
+      {rows.map(([date, label], index) => {
+        const isLast = index === rows.length - 1
+        const prefix = isLast ? "└──" : "├──"
+        return (
+          <div className="time-row" key={`${date}-${index}`}>
+            <strong>
+              <span className="tree-char" aria-hidden="true">{prefix} </span>
+              {date}
+            </strong>
+            <span>{label}</span>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -291,37 +303,52 @@ type StatBlockProps = {
 
 function StatBlock({ value, caption }: StatBlockProps) {
   const { ref, visible } = useInView<HTMLDivElement>()
-  const [display, setDisplay] = useState("0")
+  const [display, setDisplay] = useState(value)
+
   useEffect(() => {
     if (!visible) return
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches
-    const match = value.match(/-?\d[\d,.]*/)
-    if (reduced || !match) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setDisplay(value)
       return
     }
-    const numeric = Number(match[0].replace(",", ""))
-    const decimals = match[0].includes(".") ? match[0].split(".")[1].length : 0
-    const start = performance.now()
-    let frame = 0
-    const tick = (now: number) => {
-      const progress = Math.min((now - start) / 900, 1)
-      const current = numeric * progress
-      let number = current.toLocaleString("en-US", {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals,
-      })
-      if (value.startsWith("r = ")) number = `r = ${number}`
-      else if (value.endsWith("%")) number += "%"
-      else if (value.endsWith("/5")) number += "/5"
-      setDisplay(number)
-      if (progress < 1) frame = requestAnimationFrame(tick)
-    }
-    frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
+
+    const chars = "0123456789ABCDEF#%*="
+    let step = 0
+    const totalSteps = 8
+
+    const interval = window.setInterval(() => {
+      step += 1
+      if (step >= totalSteps) {
+        setDisplay(value)
+        window.clearInterval(interval)
+        return
+      }
+
+      // Progressively lock characters from left to right
+      const lockedLength = Math.floor((step / totalSteps) * value.length)
+      const scrambled = value
+        .split("")
+        .map((char, i) => {
+          if (
+            i < lockedLength ||
+            char === " " ||
+            char === "." ||
+            char === "/" ||
+            char === "-" ||
+            char === ","
+          ) {
+            return char
+          }
+          return chars[Math.floor(Math.random() * chars.length)]
+        })
+        .join("")
+
+      setDisplay(scrambled)
+    }, 45)
+
+    return () => window.clearInterval(interval)
   }, [value, visible])
+
   return (
     <div ref={ref} className="stat-block">
       <strong>{display}</strong>
@@ -350,29 +377,40 @@ const projects: Project[] = [
     index: "01",
     title: "Philippine Rice Market Outlook",
     summary:
-      "Predictive price forecasting across 18 PSA regions with Holt-Winters seasonal exponential smoothing & Power BI telemetry.",
+      "End-to-end analytics pipeline merging PSA, PhilRice & NASA POWER data for 18 regions — Holt-Winters price forecast with 95% bands, star-schema Power BI dashboard, and DAX measures.",
     metric: "3.6% MAPE",
-    tags: ["Python", "Power BI", "Forecasting", "DAX"],
+    tags: ["Python", "Power BI", "Holt-Winters", "DAX"],
     year: "2026",
     page: "rice",
     category: "Data",
   },
   {
     index: "02",
+    title: "Readmission Risk Prediction + Guideline Assistant",
+    summary:
+      "30-day readmission risk prediction for diabetic inpatients using XGBoost with SHAP explanations, plus hybrid retrieval-based guideline search for discharge support.",
+    metric: "AUROC 0.676",
+    tags: ["Python", "XGBoost", "scikit-learn", "SHAP", "ChromaDB", "BM25"],
+    year: "2026",
+    page: "readmission",
+    category: "Data",
+  },
+  {
+    index: "03",
     title: "CLARO: AI-Powered Mobile App",
     summary:
-      "Real-time edge computer vision (YOLOv8s) & bilingual Gemini AI voice dietary advisory piloted with 50 supermarket shoppers.",
-    metric: "98.55% mAP@50",
+      "On-device YOLOv8s model (57 SKUs, 12,454 images) deployed via TFLite with Gemini-powered OCR advisories & bilingual voice assistant — piloted with 50 shoppers at a Manila supermarket.",
+    metric: "97.60% mAP@50",
     tags: ["Flutter", "YOLOv8", "TFLite", "Gemini API"],
     year: "2026",
     page: "claro",
     category: "AI and Mobile",
   },
   {
-    index: "03",
+    index: "04",
     title: "HNL Construction Website",
     summary:
-      "Full-stack client corporate portal with dynamic architectural quotation estimator, PostgreSQL lead capture, and Sanity CMS.",
+      "Production Next.js corporate portal with dynamic architectural cost estimator, Sanity CMS, PostgreSQL lead capture, and Resend transactional email — 100% Lighthouse score.",
     metric: "100% Lighthouse",
     tags: ["Next.js", "TypeScript", "Sanity CMS", "PostgreSQL"],
     year: "2026",
@@ -453,7 +491,7 @@ function Footer() {
           className="back-to-top"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         >
-          Back to top ^
+          $ cd ~  # top ^
         </button>
       </div>
     </footer>
@@ -465,34 +503,44 @@ function PortraitPhoto() {
   const photo = PORTFOLIO_CONFIG.profile.photo
 
   return (
-    <div className="portrait-container">
-      <div
-        className="portrait"
-        role="img"
-        aria-label="Professional photo of Mary Faith Ardientes"
-      >
-        {photo && !imgError ? (
-          <img
-            src={photo}
-            alt={PORTFOLIO_CONFIG.profile.name}
-            className="portrait-img"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <div className="portrait-placeholder-content">
-            <span className="portrait-tag">[ PHOTO ]</span>
-            <small className="portrait-sub">.:*:+:.</small>
-            <span className="portrait-hint">
-              Drop photo to:
-              <br />
-              <code style={{ fontSize: "9px" }}>public/images/profile.jpg</code>
-            </span>
-          </div>
-        )}
-      </div>
-      <div className="portrait-caption">
-        <span>MARY FAITH P. ARDIENTES</span>
-        <small>TIP MANILA &bull; BS IT '27</small>
+    <div className="bbox-container" aria-label="Professional photo of Mary Faith Ardientes">
+      {/* YOLOv8-style detection bounding box */}
+      <div className="bbox-wrapper">
+        {/* Corner brackets */}
+        <span className="bbox-corner bbox-tl" aria-hidden="true" />
+        <span className="bbox-corner bbox-tr" aria-hidden="true" />
+        <span className="bbox-corner bbox-bl" aria-hidden="true" />
+        <span className="bbox-corner bbox-br" aria-hidden="true" />
+
+        {/* Label strip — top left like YOLO detection label */}
+        <div className="bbox-label" aria-hidden="true">
+          TIP MANILA &bull; BS IT &apos;27
+        </div>
+
+        {/* Confidence / scan line overlay */}
+        <div className="bbox-scanline" aria-hidden="true" />
+
+        {/* Photo or placeholder */}
+        <div className="bbox-photo">
+          {photo && !imgError ? (
+            <img
+              src={photo}
+              alt={PORTFOLIO_CONFIG.profile.name}
+              className="portrait-img"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="portrait-placeholder-content">
+              <span className="portrait-tag">[ PHOTO ]</span>
+              <small className="portrait-sub">.:*:+:.</small>
+              <span className="portrait-hint">
+                Drop photo to:
+                <br />
+                <code style={{ fontSize: "9px" }}>public/images/profile.jpg</code>
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -511,7 +559,7 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
               A R D I E N T E S<Cursor />
             </span>
           </h1>
-          <div>
+          <div className="hero-username-wrap">
             <a
               href={PORTFOLIO_CONFIG.profile.githubUrl}
               target="_blank"
@@ -528,13 +576,13 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
           </SelectedParagraph>
           <div className="link-row">
             <InlineLink to="about" navigate={navigate}>
-              Read more
+              cat ./about
             </InlineLink>
             <InlineLink to="projects" navigate={navigate}>
-              View projects
+              ls ./projects
             </InlineLink>
             <InlineLink href={PORTFOLIO_CONFIG.profile.githubUrl} external>
-              GitHub Profile -&gt;
+              ssh github.com -&gt;
             </InlineLink>
           </div>
         </div>
@@ -542,18 +590,16 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
       </section>
       <Divider type="A" />
       <Section>
-        <SectionLabel>Status</SectionLabel>
+        <SectionLabel>$ cat status.env</SectionLabel>
         <div className="indented status-list">
-          <p>Open to: Internships and entry-level data analyst roles</p>
-          <p>Location: {PORTFOLIO_CONFIG.profile.location}</p>
-          <p>School: {PORTFOLIO_CONFIG.profile.school}</p>
-          <p>
-            Expected graduation: {PORTFOLIO_CONFIG.profile.expectedGraduation}
-          </p>
+          <p><span className="tree-char">├── </span>OPEN_TO: Internships &amp; entry-level data analyst roles</p>
+          <p><span className="tree-char">├── </span>LOCATION: {PORTFOLIO_CONFIG.profile.location}</p>
+          <p><span className="tree-char">├── </span>SCHOOL: {PORTFOLIO_CONFIG.profile.school}</p>
+          <p><span className="tree-char">└── </span>GRADUATION: {PORTFOLIO_CONFIG.profile.expectedGraduation}</p>
         </div>
       </Section>
       <Section>
-        <SectionLabel>Timeline</SectionLabel>
+        <SectionLabel>$ ls -t timeline/</SectionLabel>
         <TimeTable
           rows={[
             [
@@ -584,13 +630,13 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
         />
         <div className="indented">
           <InlineLink to="achievements" navigate={navigate}>
-            View achievements
+            ls ./achievements
           </InlineLink>
         </div>
       </Section>
       <Divider type="B" />
       <Section>
-        <SectionLabel>Featured Projects</SectionLabel>
+        <SectionLabel>$ ls -la projects/</SectionLabel>
         <div className="project-list">
           {projects.map((project) => (
             <ProjectIndexRow
@@ -602,15 +648,15 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
         </div>
         <div className="indented">
           <InlineLink to="projects" navigate={navigate}>
-            View all projects
+            ls -a ./projects
           </InlineLink>
         </div>
       </Section>
       <Divider type="C" />
       <Section>
-        <SectionLabel>By the Numbers</SectionLabel>
+        <SectionLabel>$ head -n 4 metrics.log</SectionLabel>
         <div className="stats-grid">
-          <StatBlock value="98.55%" caption="mAP@50, CLARO YOLOv8 model" />
+          <StatBlock value="97.60%" caption="mAP@50, CLARO YOLOv8 model" />
           <StatBlock
             value="3.6%"
             caption="backtest MAPE, rice price forecast"
@@ -626,7 +672,7 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
         </div>
       </Section>
       <Section>
-        <SectionLabel>Skills Preview</SectionLabel>
+        <SectionLabel>$ cat skills.txt</SectionLabel>
         <div className="indented tags">
           {[
             "Python",
@@ -644,18 +690,18 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
         </div>
         <div className="indented">
           <InlineLink to="skills" navigate={navigate}>
-            View all skills
+            cat ./skills
           </InlineLink>
         </div>
       </Section>
       <Section>
-        <SectionLabel>Contact</SectionLabel>
+        <SectionLabel>$ ./contact.sh</SectionLabel>
         <p className="indented">
-          Open to connecting and collaborating on data-driven projects.
+          &gt; Open to connecting and collaborating on data-driven projects.
         </p>
         <div className="indented">
           <InlineLink to="contact" navigate={navigate}>
-            Get in touch
+            ./contact.sh --connect
           </InlineLink>
         </div>
       </Section>
@@ -671,7 +717,7 @@ function About({ navigate }: { navigate: (page: Page) => void }) {
   return (
     <>
       <Section>
-        <SectionLabel>About</SectionLabel>
+        <SectionLabel>$ cat about.md</SectionLabel>
         <SelectedParagraph>
           I'm a 4th-year Information Technology student who enjoys turning data
           into useful insights and building software that solves everyday
@@ -681,7 +727,7 @@ function About({ navigate }: { navigate: (page: Page) => void }) {
       </Section>
       <Divider type="D" />
       <Section>
-        <SectionLabel>Focus Areas</SectionLabel>
+        <SectionLabel>$ cat focus_areas.txt</SectionLabel>
         <div className="indented block-list">
           <p>
             &gt; Data analytics: Python data pipelines, time-series forecasting,
@@ -698,7 +744,7 @@ function About({ navigate }: { navigate: (page: Page) => void }) {
         </div>
       </Section>
       <Section>
-        <SectionLabel>Education</SectionLabel>
+        <SectionLabel>$ cat education.log</SectionLabel>
         <TimeTable
           rows={[
             [
@@ -709,25 +755,25 @@ function About({ navigate }: { navigate: (page: Page) => void }) {
         />
       </Section>
       <Section>
-        <SectionLabel>Currently</SectionLabel>
+        <SectionLabel>$ cat currently.txt</SectionLabel>
         <p className="indented">
-          Strengthening my skills in predictive analytics, econometrics, and
+          &gt; Strengthening my skills in predictive analytics, econometrics, and
           machine learning while documenting open-source codebases on GitHub.
         </p>
       </Section>
       <Section>
-        <SectionLabel>Looking For</SectionLabel>
+        <SectionLabel>$ cat looking_for.txt</SectionLabel>
         <p className="indented">
-          Internships and entry-level opportunities in data analytics, business
+          &gt; Internships and entry-level opportunities in data analytics, business
           intelligence, and related IT fields.
         </p>
       </Section>
       <div className="link-row indented">
         <InlineLink to="resume" navigate={navigate}>
-          View &amp; Download Resume
+          cat resume.pdf
         </InlineLink>
         <InlineLink to="projects" navigate={navigate}>
-          View projects
+          ls ./projects
         </InlineLink>
       </div>
     </>
@@ -739,8 +785,11 @@ function Projects({ navigate }: { navigate: (page: Page) => void }) {
   const filters = ["All", "Data", "AI and Mobile", "Web"]
   return (
     <Section>
-      <SectionLabel>Projects</SectionLabel>
+      <SectionLabel>$ ls -la projects/</SectionLabel>
       <div className="filter-row" aria-label="Project filters">
+        <span style={{ color: "var(--ink-muted)", alignSelf: "center", marginRight: "8px" }}>
+          $ filter:
+        </span>
         {filters.map((item, index) => (
           <span key={item}>
             <button
@@ -748,9 +797,9 @@ function Projects({ navigate }: { navigate: (page: Page) => void }) {
               onClick={() => setFilter(item)}
               aria-pressed={filter === item}
             >
-              {item}
+              [ {item} ]
             </button>
-            {index < filters.length - 1 && " / "}
+            {index < filters.length - 1 && " "}
           </span>
         ))}
       </div>
@@ -767,9 +816,9 @@ function Projects({ navigate }: { navigate: (page: Page) => void }) {
       </div>
       <Divider type="B" />
       <Section>
-        <SectionLabel>More GitHub Works &amp; Repositories</SectionLabel>
+        <SectionLabel>$ git remote -v --works</SectionLabel>
         <p className="indented muted" style={{ marginBottom: "16px" }}>
-          Explore open-source repositories and experimental codebases on{" "}
+          &gt; Public repositories on{" "}
           <a
             href={PORTFOLIO_CONFIG.profile.githubUrl}
             target="_blank"
@@ -789,7 +838,7 @@ function Projects({ navigate }: { navigate: (page: Page) => void }) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <span className="project-index">&bull;</span>
+              <span className="project-index">&gt;</span>
               <div>
                 <strong>{work.title}</strong>
                 <p
@@ -809,7 +858,7 @@ function Projects({ navigate }: { navigate: (page: Page) => void }) {
                 ))}
               </span>
               <span>{work.category}</span>
-              <span aria-hidden="true">&rarr;</span>
+              <span aria-hidden="true">-&gt;</span>
             </a>
           ))}
         </div>
@@ -857,13 +906,13 @@ function ProjectMediaViewer({
           className={`media-toggle-btn ${tab === "simulator" ? "active" : ""}`}
           onClick={() => setTab("simulator")}
         >
-          [ Interactive Simulator ]
+          [ SIMULATOR ]
         </button>
         <button
           className={`media-toggle-btn ${tab === "screenshot" ? "active" : ""}`}
           onClick={() => setTab("screenshot")}
         >
-          [ Real Screenshot / Production Proof ]
+          [ SCREENSHOT ]
         </button>
       </div>
 
@@ -886,26 +935,16 @@ function ProjectMediaViewer({
                   textAlign: "center",
                 }}
               >
-                Production artifact: {imageAlt}
+                &gt; Production artifact: {imageAlt}
               </p>
             </div>
           ) : (
             <div className="screenshot-empty-notice">
               <strong>[ REAL SCREENSHOT PREVIEW READY ]</strong>
               <p style={{ margin: "8px 0 4px" }}>
-                To display your real screenshot for {title}, place your image
-                at:
+                &gt; Place artifact image for {title} at:
               </p>
               <code>{imageSrc || "public/images/project.png"}</code>
-              <p
-                style={{
-                  margin: "8px 0 0",
-                  fontSize: "11px",
-                  color: "var(--ink-muted)",
-                }}
-              >
-                The website will automatically load and display it here!
-              </p>
             </div>
           )}
         </div>
@@ -921,6 +960,7 @@ function CaseStudy({
   stats,
   tools,
   showcase,
+  showcaseLabel,
   links,
   next,
   navigate,
@@ -931,6 +971,7 @@ function CaseStudy({
   stats?: Array<[string, string]>
   tools: string[]
   showcase?: ReactNode
+  showcaseLabel?: string
   links: ProjectLink[]
   next: [string, Page]
   navigate: (page: Page) => void
@@ -939,7 +980,7 @@ function CaseStudy({
     <>
       <div className="case-breadcrumb">
         <button onClick={() => navigate("projects")} className="breadcrumb-btn">
-          &lt; Back to all projects
+          &lt; cd ../projects
         </button>
         <span className="breadcrumb-divider">/</span>
         <span className="breadcrumb-current">{title.split(":")[0]}</span>
@@ -951,13 +992,13 @@ function CaseStudy({
       <Divider type="A" />
       {sections.map(([label, copy]) => (
         <Section key={label}>
-          <SectionLabel>{label}</SectionLabel>
+          <SectionLabel>{`$ cat ${label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "")}.txt`}</SectionLabel>
           <p className="indented case-copy">{copy}</p>
         </Section>
       ))}
       {stats && (
         <Section>
-          <SectionLabel>Results &amp; Metrics</SectionLabel>
+          <SectionLabel>$ head -n 4 metrics.log</SectionLabel>
           <div className="stats-grid case-stats">
             {stats.map(([value, caption]) => (
               <StatBlock key={value} value={value} caption={caption} />
@@ -966,7 +1007,7 @@ function CaseStudy({
         </Section>
       )}
       <Section>
-        <SectionLabel>Tech Stack &amp; Tools</SectionLabel>
+        <SectionLabel>$ cat dependencies.json</SectionLabel>
         <div className="indented tags">
           {tools.map((tool) => (
             <Tag key={tool}>{tool}</Tag>
@@ -975,12 +1016,12 @@ function CaseStudy({
       </Section>
       {showcase && (
         <Section>
-          <SectionLabel>Interactive Project Preview</SectionLabel>
+          <SectionLabel>{showcaseLabel || "$ open preview"}</SectionLabel>
           <div className="indented">{showcase}</div>
         </Section>
       )}
       <Section>
-        <SectionLabel>Source Code &amp; Project Links</SectionLabel>
+        <SectionLabel>$ git remote -v --links</SectionLabel>
         <div className="indented link-row">
           {links.map((link) => (
             <InlineLink
@@ -1003,589 +1044,6 @@ function CaseStudy({
 }
 
 // ---------------------------------------------------------------------------
-// Interactive Visualizer 1: Philippine Rice Market Outlook
-// ---------------------------------------------------------------------------
-function RiceDashboardShowcase() {
-  const [region, setRegion] = useState<"R3" | "NCR" | "R6" | "R4A">("R3")
-
-  const data = {
-    R3: {
-      name: "Region III - Central Luzon",
-      curr: "₱48.50 / kg",
-      forecast: "₱51.40 / kg",
-      trend: "+5.9% (Projected Q4)",
-      mape: "3.2%",
-      points: [44, 45, 46.2, 45.8, 47.5, 48.5, 49.3, 50.1, 50.8, 51.4],
-      low: [42, 43, 44.1, 43.8, 45.2, 46.1, 46.8, 47.4, 48.0, 48.5],
-      high: [46, 47, 48.3, 47.8, 49.8, 50.9, 51.8, 52.8, 53.6, 54.3],
-    },
-    NCR: {
-      name: "National Capital Region (NCR)",
-      curr: "₱52.00 / kg",
-      forecast: "₱54.30 / kg",
-      trend: "+4.4% (Projected Q4)",
-      mape: "3.6%",
-      points: [48.5, 49.2, 50.0, 50.8, 51.4, 52.0, 52.7, 53.2, 53.8, 54.3],
-      low: [46.5, 47.1, 48.0, 48.6, 49.2, 49.8, 50.3, 50.9, 51.4, 51.8],
-      high: [50.5, 51.3, 52.0, 53.0, 53.6, 54.2, 55.1, 55.5, 56.2, 56.8],
-    },
-    R6: {
-      name: "Region VI - Western Visayas",
-      curr: "₱46.80 / kg",
-      forecast: "₱49.20 / kg",
-      trend: "+5.1% (Projected Q4)",
-      mape: "3.8%",
-      points: [42.8, 43.5, 44.2, 45.0, 45.9, 46.8, 47.5, 48.1, 48.6, 49.2],
-      low: [40.8, 41.5, 42.2, 43.0, 43.8, 44.6, 45.2, 45.8, 46.2, 46.7],
-      high: [44.8, 45.5, 46.2, 47.0, 48.0, 49.0, 49.8, 50.4, 51.0, 51.7],
-    },
-    R4A: {
-      name: "Region IV-A - CALABARZON",
-      curr: "₱50.20 / kg",
-      forecast: "₱52.90 / kg",
-      trend: "+5.3% (Projected Q4)",
-      mape: "3.5%",
-      points: [46.5, 47.2, 48.0, 48.8, 49.5, 50.2, 50.9, 51.6, 52.2, 52.9],
-      low: [44.5, 45.1, 45.9, 46.6, 47.3, 48.0, 48.6, 49.2, 49.8, 50.4],
-      high: [48.5, 49.3, 50.1, 51.0, 51.7, 52.4, 53.2, 54.0, 54.6, 55.4],
-    },
-  }
-
-  const active = data[region]
-  const months = [
-    "M-5",
-    "M-4",
-    "M-3",
-    "M-2",
-    "M-1",
-    "Current",
-    "+1M",
-    "+2M",
-    "+3M",
-    "+6M",
-  ]
-
-  // SVG Chart points calculation
-  const svgWidth = 560
-  const svgHeight = 180
-  const minVal = 38
-  const maxVal = 58
-  const getY = (val: number) =>
-    svgHeight - ((val - minVal) / (maxVal - minVal)) * svgHeight
-  const getX = (idx: number) =>
-    30 + idx * ((svgWidth - 60) / (months.length - 1))
-
-  const histPath = active.points
-    .slice(0, 6)
-    .map((v, i) => `${getX(i)},${getY(v)}`)
-    .join(" ")
-
-  const forecastPath = active.points
-    .slice(5)
-    .map((v, i) => `${getX(i + 5)},${getY(v)}`)
-    .join(" ")
-
-  // Shaded 95% Confidence Band
-  const bandTop = active.high
-    .slice(5)
-    .map((v, i) => `${getX(i + 5)},${getY(v)}`)
-    .join(" ")
-  const bandBottom = active.low
-    .slice(5)
-    .reverse()
-    .map((v, i) => `${getX(9 - i)},${getY(v)}`)
-    .join(" ")
-  const bandPolygon = `${bandTop} ${bandBottom}`
-
-  return (
-    <div className="showcase-container">
-      <div className="showcase-header">
-        <span>[POWER BI / PYTHON TELEMETRY] RICE OUTLOOK MODEL</span>
-        <span>STATUS: LIVE SIMULATION</span>
-      </div>
-      <div className="showcase-body">
-        <div className="telemetry-tabs">
-          <button
-            className={`telemetry-tab ${region === "R3" ? "active" : ""}`}
-            onClick={() => setRegion("R3")}
-          >
-            [Region III - Central Luzon]
-          </button>
-          <button
-            className={`telemetry-tab ${region === "NCR" ? "active" : ""}`}
-            onClick={() => setRegion("NCR")}
-          >
-            [NCR - Metro Manila]
-          </button>
-          <button
-            className={`telemetry-tab ${region === "R6" ? "active" : ""}`}
-            onClick={() => setRegion("R6")}
-          >
-            [Region VI - W. Visayas]
-          </button>
-          <button
-            className={`telemetry-tab ${region === "R4A" ? "active" : ""}`}
-            onClick={() => setRegion("R4A")}
-          >
-            [Region IV-A - CALABARZON]
-          </button>
-        </div>
-
-        <div className="telemetry-grid">
-          <div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: "8px",
-                fontSize: "12px",
-              }}
-            >
-              <strong>
-                {active.name} &mdash; 6-Month Holt-Winters Projection
-              </strong>
-              <span style={{ color: "var(--ink-muted)" }}>
-                95% Confidence Bounds (shaded)
-              </span>
-            </div>
-            <div
-              style={{
-                border: "1px solid var(--ink-line)",
-                background: "rgba(169, 194, 176, 0.08)",
-                padding: "12px",
-              }}
-            >
-              <svg
-                viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-                style={{ width: "100%", height: "auto" }}
-              >
-                {/* Horizontal gridlines */}
-                {[40, 45, 50, 55].map((level) => (
-                  <g key={level}>
-                    <line
-                      x1="20"
-                      y1={getY(level)}
-                      x2={svgWidth - 20}
-                      y2={getY(level)}
-                      stroke="var(--ink-line)"
-                      strokeDasharray="2,3"
-                      strokeWidth="0.8"
-                    />
-                    <text
-                      x="5"
-                      y={getY(level) + 4}
-                      fontSize="9"
-                      fill="var(--ink-muted)"
-                    >
-                      ₱{level}
-                    </text>
-                  </g>
-                ))}
-
-                {/* 95% Confidence Interval Band */}
-                <polygon points={bandPolygon} fill="rgba(31, 138, 76, 0.18)" />
-
-                {/* Historical Line */}
-                <polyline
-                  points={histPath}
-                  fill="none"
-                  stroke="var(--ink-primary)"
-                  strokeWidth="2.5"
-                />
-
-                {/* Forecast Line */}
-                <polyline
-                  points={forecastPath}
-                  fill="none"
-                  stroke="var(--accent-cursor)"
-                  strokeWidth="2.5"
-                  strokeDasharray="4,4"
-                />
-
-                {/* Data point dots */}
-                {active.points.map((v, i) => (
-                  <circle
-                    key={i}
-                    cx={getX(i)}
-                    cy={getY(v)}
-                    r={i >= 5 ? 3.5 : 3}
-                    fill={
-                      i >= 5 ? "var(--accent-cursor)" : "var(--ink-primary)"
-                    }
-                  />
-                ))}
-              </svg>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginTop: "8px",
-                  fontSize: "10px",
-                  color: "var(--ink-muted)",
-                }}
-              >
-                {months.map((m) => (
-                  <span key={m}>{m}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="telemetry-kpis">
-            <div className="telemetry-kpi-card">
-              <span>CURRENT RETAIL BENCHMARK</span>
-              <strong>{active.curr}</strong>
-            </div>
-            <div className="telemetry-kpi-card">
-              <span>6-MONTH FORECAST ESTIMATE</span>
-              <strong style={{ color: "var(--accent-cursor)" }}>
-                {active.forecast}
-              </strong>
-              <small style={{ fontSize: "10px", color: "var(--ink-muted)" }}>
-                {active.trend}
-              </small>
-            </div>
-            <div className="telemetry-kpi-card">
-              <span>BACKTEST ACCURACY (MAPE)</span>
-              <strong>{active.mape}</strong>
-              <small style={{ fontSize: "10px", color: "var(--ink-muted)" }}>
-                Across 18 regional markets
-              </small>
-            </div>
-            <div className="telemetry-kpi-card">
-              <span>RAINFALL CORRELATION</span>
-              <strong>r = -0.09</strong>
-              <small style={{ fontSize: "10px", color: "var(--ink-muted)" }}>
-                NASA POWER vs PhilRice Yield
-              </small>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Interactive Visualizer 2: CLARO Mobile AI Food Scanner
-// ---------------------------------------------------------------------------
-function ClaroMobileShowcase() {
-  const [lang, setLang] = useState<"tagalog" | "english">("tagalog")
-
-  return (
-    <div className="showcase-container">
-      <div className="showcase-header">
-        <span>[MOBILE SIMULATOR] CLARO: YOLOV8 + FLUTTER + GEMINI AI</span>
-        <span>MODEL: 98.55% mAP@50</span>
-      </div>
-      <div className="showcase-body">
-        <div className="phone-grid-interactive">
-          {/* Phone Screen 1: Camera Vision */}
-          <div className="phone-card">
-            <div className="phone-top-notch">
-              <span>09:41</span>
-              <span>CAMERA / SCANNER</span>
-              <span>100%</span>
-            </div>
-            <div className="phone-screen-content">
-              <div style={{ fontSize: "11px", fontWeight: 600 }}>
-                YOLOv8 Edge Detection
-              </div>
-              <div
-                style={{
-                  height: "240px",
-                  border: "1px dashed var(--ink-line)",
-                  background: "rgba(169, 194, 176, 0.15)",
-                  position: "relative",
-                  padding: "16px",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                }}
-              >
-                <div className="yolo-box">
-                  <span className="yolo-tag">
-                    Ligo Sardines (Tomato) &bull; 99.2%
-                  </span>
-                  <div
-                    style={{ fontSize: "10px", color: "var(--ink-primary)" }}
-                  >
-                    CLASS 14: CANNED FISH
-                  </div>
-                  <div style={{ fontSize: "9px", color: "var(--ink-muted)" }}>
-                    NET WT: 155g &bull; OCR VERIFIED
-                  </div>
-                </div>
-
-                <div
-                  className="yolo-box"
-                  style={{
-                    borderColor: "#b87000",
-                    background: "rgba(184, 112, 0, 0.08)",
-                  }}
-                >
-                  <span className="yolo-tag" style={{ background: "#b87000" }}>
-                    Lucky Me! Kalamansi &bull; 98.4%
-                  </span>
-                  <div
-                    style={{ fontSize: "10px", color: "var(--ink-primary)" }}
-                  >
-                    CLASS 03: INSTANT NOODLES
-                  </div>
-                  <div style={{ fontSize: "9px", color: "var(--ink-muted)" }}>
-                    HIGH SODIUM DETECTED
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    textAlign: "center",
-                    fontSize: "10px",
-                    color: "var(--ink-muted)",
-                  }}
-                >
-                  [+] 57 Filipino CPG classes in TFLite
-                </div>
-              </div>
-              <div style={{ fontSize: "10px", color: "var(--ink-muted)" }}>
-                &gt; Real-time bounding box tracking at 32 FPS on mobile edge.
-              </div>
-            </div>
-          </div>
-
-          {/* Phone Screen 2: Nutritional Breakdown */}
-          <div className="phone-card">
-            <div className="phone-top-notch">
-              <span>09:41</span>
-              <span>NUTRITION ADVISORY</span>
-              <span>100%</span>
-            </div>
-            <div className="phone-screen-content">
-              <div style={{ fontSize: "11px", fontWeight: 600 }}>
-                Nutritional Assessment
-              </div>
-              <div
-                style={{
-                  padding: "12px",
-                  border: "1px solid var(--ink-line)",
-                  background: "#fff",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "11px",
-                    }}
-                  >
-                    <strong>SODIUM INTAKE</strong>
-                    <span style={{ color: "#d9381e", fontWeight: 700 }}>
-                      1,480 mg (74% RDA)
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      height: "8px",
-                      width: "100%",
-                      background: "#eee",
-                      marginTop: "4px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: "100%",
-                        width: "74%",
-                        background: "#d9381e",
-                      }}
-                    />
-                  </div>
-                  <small style={{ fontSize: "9px", color: "#d9381e" }}>
-                    ALERT: Exceeds single meal threshold
-                  </small>
-                </div>
-
-                <div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "11px",
-                    }}
-                  >
-                    <span>FAT / LIPIDS</span>
-                    <span>14g (22% RDA)</span>
-                  </div>
-                  <div
-                    style={{
-                      height: "6px",
-                      width: "100%",
-                      background: "#eee",
-                      marginTop: "4px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: "100%",
-                        width: "22%",
-                        background: "var(--ink-primary)",
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "11px",
-                    }}
-                  >
-                    <span>PROTEIN CONTENT</span>
-                    <span>18g (36% RDA)</span>
-                  </div>
-                  <div
-                    style={{
-                      height: "6px",
-                      width: "100%",
-                      background: "#eee",
-                      marginTop: "4px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: "100%",
-                        width: "36%",
-                        background: "var(--accent-cursor)",
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    borderTop: "1px dashed #ccc",
-                    paddingTop: "8px",
-                    fontSize: "11px",
-                  }}
-                >
-                  <strong>OVERALL SAFETY RATING:</strong>
-                  <span
-                    style={{
-                      color: "#b87000",
-                      fontWeight: 600,
-                      marginLeft: "6px",
-                    }}
-                  >
-                    MODERATE - HIGH SODIUM
-                  </span>
-                </div>
-              </div>
-              <div style={{ fontSize: "10px", color: "var(--ink-muted)" }}>
-                &gt; Piloted with 50 supermarket shoppers in Manila with 84%
-                independent task completion.
-              </div>
-            </div>
-          </div>
-
-          {/* Phone Screen 3: Bilingual Voice AI */}
-          <div className="phone-card">
-            <div className="phone-top-notch">
-              <span>09:41</span>
-              <span>GEMINI AI VOICE</span>
-              <span>100%</span>
-            </div>
-            <div className="phone-screen-content">
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <span style={{ fontSize: "11px", fontWeight: 600 }}>
-                  Bilingual Voice Advisory
-                </span>
-                <button
-                  style={{
-                    fontSize: "10px",
-                    padding: "2px 6px",
-                    border: "1px solid var(--ink-line)",
-                    background: "var(--bg-page)",
-                    cursor: "pointer",
-                  }}
-                  onClick={() =>
-                    setLang(lang === "tagalog" ? "english" : "tagalog")
-                  }
-                >
-                  [{lang === "tagalog" ? "TAGALOG" : "ENGLISH"}]
-                </button>
-              </div>
-
-              <div
-                style={{
-                  padding: "12px",
-                  border: "1px solid var(--ink-line)",
-                  background: "rgba(169, 194, 176, 0.12)",
-                  fontSize: "11px",
-                  lineHeight: 1.5,
-                  minHeight: "160px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "9px",
-                    color: "var(--ink-muted)",
-                    marginBottom: "6px",
-                  }}
-                >
-                  VOICE OUTPUT TRANSCRIPT:
-                </div>
-                {lang === "tagalog" ? (
-                  <p style={{ margin: 0 }}>
-                    "Pansin: Ang pancit canton na ito ay naglalaman ng 1,480mg
-                    ng sodium (74% ng inirerekomendang daily intake). Para sa
-                    may altapresyon, iminumungkahing magbawas ng pampalasa o
-                    kumain ng kalahating serving lamang."
-                  </p>
-                ) : (
-                  <p style={{ margin: 0 }}>
-                    "Health advisory: This instant noodle product contains
-                    1,480mg of sodium (74% of daily recommended limit). If
-                    managing hypertension, consider using half the seasoning
-                    packet or draining excess broth."
-                  </p>
-                )}
-              </div>
-
-              <div
-                style={{
-                  padding: "8px",
-                  border: "1px dashed var(--ink-line)",
-                  fontSize: "10px",
-                }}
-              >
-                <span>
-                  &bull; Average Usability Score: <strong>4.68 / 5.0</strong>
-                </span>
-                <br />
-                <span>
-                  &bull; Voice latency: <strong>~340ms</strong>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // Interactive Visualizer 3: HNL Construction Website Showcase
 // ---------------------------------------------------------------------------
 function HnlWebsiteShowcase() {
@@ -1604,24 +1062,23 @@ function HnlWebsiteShowcase() {
   const architectural = Math.round(total * 0.35)
   const mep = Math.round(total * 0.2)
 
+  const presets = [60, 120, 240, 360, 500]
+  const maxArea = 600
+  const barFilled = Math.min(20, Math.max(1, Math.round((area / maxArea) * 20)))
+  const progressBar =
+    "[" + "=".repeat(barFilled) + ">" + " ".repeat(Math.max(0, 20 - barFilled)) + "]"
+
   return (
-    <div className="showcase-container browser-showcase">
-      <div className="browser-bar">
-        <div className="browser-dots">
-          <span className="browser-dot" />
-          <span className="browser-dot" />
-          <span className="browser-dot" />
-        </div>
-        <div className="browser-url">
-          https://hnlconstruction.com.ph &mdash; Interactive Client Quotation
-          System
-        </div>
+    <div className="showcase-container">
+      <div className="showcase-header">
+        <span>[HNL] CLIENT COST ESTIMATION ENGINE</span>
+        <span>NEXT.JS &bull; SANITY CMS &bull; RESEND</span>
       </div>
       <div className="showcase-body">
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
             gap: "24px",
           }}
         >
@@ -1633,7 +1090,7 @@ function HnlWebsiteShowcase() {
                 marginBottom: "12px",
               }}
             >
-              Instant Construction Cost Estimator (Next.js + Sanity CMS)
+              &gt; Dynamic Quotation Calculator (TypeScript &bull; Sanity Studio)
             </div>
             <p
               style={{
@@ -1642,31 +1099,32 @@ function HnlWebsiteShowcase() {
                 marginBottom: "16px",
               }}
             >
-              Built for HNL Construction to automate quote inquiries, store bids
-              in PostgreSQL, and send automated client emails via Resend.
+              Built for HNL Construction to automate client bids, store inquiries
+              in PostgreSQL, and trigger transactional client emails via Resend.
             </p>
 
             <div
-              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+              style={{ display: "flex", flexDirection: "column", gap: "14px" }}
             >
               <div>
                 <label
                   style={{
                     fontSize: "11px",
                     display: "block",
-                    marginBottom: "4px",
+                    marginBottom: "6px",
+                    color: "var(--ink-muted)",
                   }}
                 >
-                  PROJECT CLASSIFICATION:
+                  $ select --project-classification:
                 </label>
-                <div style={{ display: "flex", gap: "8px" }}>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                   <button
                     className={`telemetry-tab ${
                       projectType === "residential" ? "active" : ""
                     }`}
                     onClick={() => setProjectType("residential")}
                   >
-                    [Residential Build]
+                    [ Residential ]
                   </button>
                   <button
                     className={`telemetry-tab ${
@@ -1674,7 +1132,7 @@ function HnlWebsiteShowcase() {
                     }`}
                     onClick={() => setProjectType("commercial")}
                   >
-                    [Commercial Fit-out]
+                    [ Commercial ]
                   </button>
                   <button
                     className={`telemetry-tab ${
@@ -1682,7 +1140,7 @@ function HnlWebsiteShowcase() {
                     }`}
                     onClick={() => setProjectType("warehouse")}
                   >
-                    [Warehouse]
+                    [ Warehouse ]
                   </button>
                 </div>
               </div>
@@ -1692,20 +1150,55 @@ function HnlWebsiteShowcase() {
                   style={{
                     fontSize: "11px",
                     display: "block",
-                    marginBottom: "4px",
+                    marginBottom: "6px",
+                    color: "var(--ink-muted)",
                   }}
                 >
-                  TOTAL FLOOR AREA: <strong>{area} SQM</strong>
+                  $ set --floor-area: <strong>{area} SQM</strong>
                 </label>
-                <input
-                  type="range"
-                  min="40"
-                  max="600"
-                  step="10"
-                  value={area}
-                  onChange={(e) => setArea(Number(e.target.value))}
-                  style={{ width: "100%", accentColor: "var(--ink-primary)" }}
-                />
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "6px",
+                    flexWrap: "wrap",
+                    marginBottom: "8px",
+                  }}
+                >
+                  {presets.map((sqm) => (
+                    <button
+                      key={sqm}
+                      className={`telemetry-tab ${area === sqm ? "active" : ""}`}
+                      onClick={() => setArea(sqm)}
+                    >
+                      [ {sqm} SQM ]
+                    </button>
+                  ))}
+                  <button
+                    className="telemetry-tab"
+                    onClick={() => setArea((prev) => Math.max(40, prev - 20))}
+                    title="Decrease by 20 SQM"
+                  >
+                    [ -20 ]
+                  </button>
+                  <button
+                    className="telemetry-tab"
+                    onClick={() => setArea((prev) => Math.min(600, prev + 20))}
+                    title="Increase by 20 SQM"
+                  >
+                    [ +20 ]
+                  </button>
+                </div>
+                <div
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: "11px",
+                    color: "var(--accent-cursor)",
+                    letterSpacing: "0.08em",
+                  }}
+                  aria-hidden="true"
+                >
+                  SCALE: {progressBar} {area} / 600 SQM
+                </div>
               </div>
             </div>
           </div>
@@ -1724,7 +1217,7 @@ function HnlWebsiteShowcase() {
                 marginBottom: "8px",
               }}
             >
-              AUTOMATED BID BREAKDOWN:
+              $ calculate --bid-breakdown:
             </div>
             <div
               style={{
@@ -1781,8 +1274,8 @@ function HnlWebsiteShowcase() {
                 color: "var(--ink-muted)",
               }}
             >
-              Data synced to Sanity Studio CMS for instant pricing updates
-              without code changes.
+              &gt; Synced with Sanity Studio CMS for instant pricing updates
+              without code redeploys.
             </small>
           </div>
         </div>
@@ -1797,59 +1290,301 @@ function Rice({ navigate }: { navigate: (page: Page) => void }) {
       title="Philippine Rice Market Outlook: Predictive Analytics Dashboard"
       meta={[
         ["Role", "Data Analyst"],
-        ["Type", "Course project"],
+        ["Course", "Fundamentals of Analytics"],
+        ["Institution", "TIP Manila"],
         ["Date", "September 2026"],
       ]}
       sections={[
         [
           "Overview",
-          "Forecasts retail rice prices six months ahead and shows how price outlook relates to rainfall and yield across 18 Philippine administrative regions.",
+          "A one-page Power BI dashboard answering three questions for rice market stakeholders: where retail prices are heading over the next six months, which regions have weak or at-risk yields, and how much rainfall is statistically associated with yield.",
         ],
         [
-          "Data and Method",
-          "Built a Python pipeline to clean and merge datasets from PSA (Philippine Statistics Authority), PhilRice, and NASA POWER into analysis-ready tables across 18 regions. Forecasted prices with a Holt-Winters seasonal exponential smoothing model with 95% prediction intervals.",
+          "Data Pipeline",
+          "Built a Python/Colab pipeline that standardized region names, converted dates, and merged four government Excel files (PSA production, area harvested, retail price, farmgate price) with NASA POWER weather data into five clean CSV tables. Passed all validation checks — no unmapped regions, median palay yield confirmed at 3.87 t/ha.",
         ],
         [
-          "Dashboard",
-          "Interactive Power BI dashboard with a star-schema model, custom DAX measures, and drill-down regional telemetry visualizing retail prices vs. historical climate metrics.",
+          "Forecasting",
+          "Holt-Winters model forecasting the national retail price six months ahead at ~₱49.72/kg, with a 95% prediction band. Backtest MAPE: 3.6% nationally, ranging 1.9% (Eastern Visayas) to 12.9% (MIMAROPA) by region.",
+        ],
+        [
+          "Dashboard & Data Model",
+          "Star-schema model in Power BI with dim_region and Dim_Date linking four fact tables (price, forecast, weather, yield). Custom DAX measures include Yield vs National %, Yield Status (At Risk / Watch / Healthy), and Forecast MAPE %. A single region + year slicer drives five KPI cards, a hero forecast line chart, ranked yield bars, a rainfall-yield scatter, and an ecosystem donut.",
+        ],
+        [
+          "Rainfall & Yield Finding",
+          "The rainfall analysis found only a weak statistical association: r = −0.09, r² ≈ 0.007, across 554 region-quarters — less than 1% of quarterly yield variation explained by rainfall. Reported honestly as a finding, with a dashboard note that association ≠ causation.",
         ],
       ]}
       stats={[
-        ["3.6%", "backtest MAPE across regions"],
-        ["r = -0.09", "rainfall-yield correlation coefficient"],
-        ["18", "regions analyzed and forecasted"],
+        ["3.6%", "national backtest MAPE"],
+        ["r = −0.09", "rainfall–yield correlation (554 region-quarters)"],
+        ["18", "PSA regions analyzed & forecasted"],
+        ["₱49.72", "6-month forecast national retail price"],
       ]}
       tools={[
         "Python",
         "Pandas",
+        "Google Colab",
         "Power BI",
         "DAX",
-        "Holt-Winters Forecasting",
+        "Holt-Winters (Statsmodels)",
         "NASA POWER API",
+        "PSA OpenSTAT",
+        "PhilRice Ricelytics",
       ]}
       showcase={
-        <ProjectMediaViewer
-          title="Philippine Rice Market Outlook"
-          simulator={<RiceDashboardShowcase />}
-          imageSrc="/images/rice-dashboard.png"
-          imageAlt="Power BI Retail Rice Market Forecast Dashboard"
-        />
+        <div className="showcase-container">
+          <div className="showcase-header">
+            <span>[POWER BI] RICE OUTLOOK DASHBOARD</span>
+            <span>ACADEMIC MIDTERM PROJECT</span>
+          </div>
+          <div className="showcase-body" style={{ padding: "16px" }}>
+            <a
+              href="/images/phil_rice_outlook.png"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                src="/images/phil_rice_outlook.png"
+                alt="Philippine Rice Outlook 2018-2026 Power BI dashboard showing retail price forecast, yield by region, rainfall vs. yield, and production by ecosystem"
+                loading="lazy"
+                style={{
+                  maxWidth: "100%",
+                  height: "auto",
+                  display: "block",
+                  border: "1px solid var(--ink-line)",
+                }}
+              />
+            </a>
+            <p
+              style={{
+                margin: "8px 0 0",
+                fontSize: "11px",
+                color: "var(--ink-muted)",
+                textAlign: "center",
+              }}
+            >
+              Screenshot of the Power BI report (academic midterm project).
+            </p>
+          </div>
+        </div>
       }
+      showcaseLabel="$ open rice_dashboard.pbix"
       links={[
         {
-          label: "GitHub Repository (Python & Data Pipeline)",
+          label: "git remote: rice-forecast (Python & Pipeline) ->",
           href: PORTFOLIO_CONFIG.projects.rice.githubUrl,
           external: true,
         },
+      ]}
+      next={["cd ./readmission ->", "readmission"]}
+      navigate={navigate}
+    />
+  )
+}
+
+function Readmission({ navigate }: { navigate: (page: Page) => void }) {
+  return (
+    <CaseStudy
+      title="Readmission Risk Prediction + Guideline Assistant"
+      meta={[
+        ["Role", "Predictive Analytics & Knowledge Layer Developer"],
+        ["Course", "CIT403A, Fundamentals of Predictive Analytics"],
+        ["Institution", "TIP Manila"],
+        ["Date", "2026"],
+        ["Team", "Group project with Roella Monzaga"],
+      ]}
+      sections={[
+        [
+          "Problem",
+          "Hospital readmissions within 30 days are costly and often preventable, yet clinical teams lack patient-level risk scores at discharge. This project built a readmission risk prediction system for diabetic inpatients, paired with a retrieval-based guideline search to support discharge planning.",
+        ],
+        [
+          "Data",
+          "The Diabetes 130-US Hospitals dataset from UCI, covering encounters from 1999–2008. After cleaning, the dataset contained 99,340 encounters with an 11.39% readmission rate. I built the binary 30-day readmission target and engineered features including age midpoints and ICD-9 diagnosis grouping.",
+        ],
+        [
+          "Approach",
+          "I split the data by patient into train, validation, and test sets and checked for leakage. I trained a logistic regression baseline and a tuned XGBoost model, then applied isotonic calibration and built low, medium, and high risk bands. I explained predictions with SHAP. For the knowledge layer, I built a document ingestion and chunking pipeline over the AHRQ RED toolkit plus 16 project notes (521 chunks), created embeddings stored in ChromaDB, and implemented hybrid retrieval combining dense search, BM25, and reciprocal rank fusion. The team also built a LangGraph agent layer and Streamlit app that use the prediction and retrieval tools above, though those parts were not my work.",
+        ],
+        [
+          "Results",
+          "The XGBoost model reached AUROC 0.676, PR-AUC 0.212, and Brier score 0.096. The logistic regression baseline AUROC was 0.671 — a modest gain. A static-dashboard baseline scored AUROC 0.63 and PR-AUC 0.20. The high-risk band (about 10% of test patients) had a 27.0% observed readmission rate, medium 14.0%, low 6.7%, versus about 11.3% overall. On a 20-question test set, hybrid retrieval reached recall@5 of 0.90 versus 0.80 for vector-only and keyword-only search.",
+        ],
+        [
+          "Limitations",
+          "The dataset covers 1999–2008 encounters, so clinical patterns may have shifted. The predictive signal is moderate — AUROC 0.676 is a realistic but not strong discriminator. Retrieval test questions were written around the project's own notes, not independently sourced. Fairness audits showed recall and AUROC varied across age and race groups (for example, lower recall for patients aged 80+). The system is not clinically validated.",
+        ],
+        [
+          "My Role",
+          "I built and evaluated three parts of the system. In Part 1 (predictive analytics), I loaded and cleaned the dataset, built the readmission target, engineered features, split the data by patient and checked for leakage, trained the logistic regression baseline and tuned XGBoost model, applied isotonic calibration, built risk bands, explained predictions with SHAP, and built the input-validated prediction function. In Part 2 (knowledge layer), I built the document ingestion and chunking pipeline, created embeddings stored in ChromaDB, implemented hybrid retrieval (dense + BM25 + reciprocal rank fusion), and evaluated vector-only vs. keyword-only vs. hybrid retrieval. In Part 4 (evaluation), I ran the fairness audit across age, gender, and race, edge-case tests, and the baseline comparison against a static dashboard.",
+        ],
+      ]}
+      stats={[
+        ["0.676", "AUROC (XGBoost, calibrated)"],
+        ["0.212", "PR-AUC"],
+        ["0.096", "Brier score"],
+        ["0.90", "recall@5, hybrid retrieval (20-question test)"],
+      ]}
+      tools={[
+        "Python",
+        "XGBoost",
+        "scikit-learn",
+        "SHAP",
+        "ChromaDB",
+        "BM25",
+        "pandas",
+      ]}
+      links={[
         {
-          label: "Interactive Power BI Report",
-          href: PORTFOLIO_CONFIG.projects.rice.liveReportUrl,
+          label: "jupyter: diabetes_readmission.ipynb ->",
+          href: PORTFOLIO_CONFIG.projects.readmission.notebookUrl,
           external: true,
         },
       ]}
-      next={["Next: 02 CLARO ->", "claro"]}
+      next={["cd ./claro ->", "claro"]}
       navigate={navigate}
     />
+  )
+}
+
+function ClaroGallerySlot({
+  initialSrc,
+  fallbackSrcs = [],
+  alt,
+  caption,
+  subImages,
+}: {
+  initialSrc: string
+  fallbackSrcs?: string[]
+  alt: string
+  caption: string
+  subImages?: { label: string; src: string }[]
+}) {
+  const [activeSrc, setActiveSrc] = useState(initialSrc)
+  const [hasError, setHasError] = useState(false)
+  const [candidateIndex, setCandidateIndex] = useState(0)
+
+  const handleError = () => {
+    if (fallbackSrcs && candidateIndex < fallbackSrcs.length) {
+      const nextSrc = fallbackSrcs[candidateIndex]
+      setCandidateIndex((prev) => prev + 1)
+      setActiveSrc(nextSrc)
+    } else {
+      setHasError(true)
+    }
+  }
+
+  if (hasError) return null
+
+  return (
+    <div className="claro-gallery-card">
+      {subImages && subImages.length > 1 && (
+        <div className="claro-gallery-tabs">
+          <span className="claro-tabs-label">PART:</span>
+          {subImages.map((sub) => (
+            <button
+              key={sub.src}
+              type="button"
+              className={`claro-tab-btn ${activeSrc === sub.src ? "active" : ""}`}
+              onClick={() => setActiveSrc(sub.src)}
+            >
+              [{sub.label}]
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="claro-phone-frame">
+        <a
+          href={activeSrc}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="claro-gallery-link"
+          title="Click to view full size in new tab"
+        >
+          <img
+            src={activeSrc}
+            alt={alt}
+            loading="lazy"
+            onError={handleError}
+            className="claro-gallery-img"
+          />
+        </a>
+      </div>
+      <p className="claro-gallery-caption">
+        <span className="ascii-bracket">[</span> {caption}{" "}
+        <span className="ascii-bracket">]</span>
+      </p>
+    </div>
+  )
+}
+
+function ClaroShowcase() {
+  return (
+    <div className="showcase-container">
+      <div className="showcase-header">
+        <span>[CLARO] APPLICATION SCREENSHOTS &amp; FIELD PROOF</span>
+        <span>EVER PLUS PILOT &bull; 57 SKUS</span>
+      </div>
+      <div className="showcase-body">
+        <div className="claro-gallery-container">
+          <ClaroGallerySlot
+            initialSrc="/images/Scan.jpeg"
+            fallbackSrcs={[
+              "/images/scan.jpeg",
+              "/images/Scan.png",
+              "/images/scan.png",
+            ]}
+            alt="CLARO scanner detecting a canned product with a green bounding box"
+            caption="01 SCAN"
+          />
+          <ClaroGallerySlot
+            initialSrc="/images/Product_result_advisory1.jpeg"
+            fallbackSrcs={["/images/product_result_advisory1.jpeg"]}
+            subImages={[
+              { label: "1", src: "/images/Product_result_advisory1.jpeg" },
+              { label: "2", src: "/images/Product_result_advisory2.jpeg" },
+              { label: "3", src: "/images/Product_result_advisory3.jpeg" },
+            ]}
+            alt="Product result with FDA status, allergen flags, and condition-specific health advisory"
+            caption="02 ADVISORY"
+          />
+          <ClaroGallerySlot
+            initialSrc="/images/Ranking_result.jpeg"
+            fallbackSrcs={[
+              "/images/ranking_result.jpeg",
+              "/images/Ranking_result.png",
+            ]}
+            alt="Ranked product comparison based on the user's health profile"
+            caption="03 COMPARE"
+          />
+          <ClaroGallerySlot
+            initialSrc="/images/Voice_assistant.jpeg"
+            fallbackSrcs={[
+              "/images/voice_assistant.jpeg",
+              "/images/Voice_assistant.png",
+              "/images/voice_assistant.png",
+              "/images/VoiceAssistant.jpeg",
+              "/images/Accessibility.jpeg",
+            ]}
+            alt="Voice assistant and accessibility settings"
+            caption="04 ACCESSIBILITY"
+          />
+        </div>
+        <p
+          style={{
+            margin: "16px 0 0",
+            fontSize: "11px",
+            color: "var(--ink-muted)",
+            textAlign: "center",
+          }}
+        >
+          Screenshots from the Ever Plus Superstore field pilot (click any
+          phone screen to open full size).
+        </p>
+      </div>
+    </div>
   )
 }
 
@@ -1858,60 +1593,63 @@ function Claro({ navigate }: { navigate: (page: Page) => void }) {
     <CaseStudy
       title="CLARO: An AI-Powered Mobile Application for Health-Informed Decision-Making on Filipino Canned Foods and Instant Noodles"
       meta={[
-        ["Role", "Project Manager & AI Integrator"],
-        ["Type", "Capstone project"],
-        ["Date", "October 2026"],
-        ["Team", "3 Members"],
+        ["Role", "Project Manager & Quality Lead"],
+        ["Type", "Capstone Project — BS IT"],
+        ["Institution", "TIP Manila"],
+        ["Date", "November 2026"],
+        ["Team", "3 Members (Lead: Mary Faith Ardientes)"],
+        ["Pilot Site", "Ever Plus Superstore Inc., Sampaloc, Manila"],
       ]}
       sections={[
         [
           "Overview",
-          "Led a 3-person team to build a Flutter and Firebase mobile app plus a React admin dashboard, successfully piloted with 50 shoppers at a Manila grocery store.",
+          "CLARO is an AI-powered Android mobile application and web admin dashboard designed to support health-informed grocery purchasing among Filipino consumers aged 18 to 40. Developed with Flutter, Firebase, and React, it recognizes local canned foods and instant noodles across 57 SKUs and provides automated nutritional analysis, 2023 Nutri-Score and NOVA processing classifications, allergen alerts, FDA registration verification, multi-product scanning for up to 3 items, and bilingual voice assistance (English and Filipino).",
         ],
         [
           "Model & Edge Deployment",
-          "Trained YOLOv8s on 12,454 annotated images across 57 Filipino consumer product classes, reaching 98.55% mAP@50. Quantized into TensorFlow Lite for real-time offline edge inference on mobile devices.",
+          "A custom YOLOv8s (Small) object detection model was fine-tuned via transfer learning on 12,454 annotated images (4,414 source photographs across 57 benchmarked SKUs with Roboflow augmentation, 80/10/10 split) and exported to TensorFlow Lite FP32 for real-time on-device inference. On the held-out test set, the model achieved a mAP@50 of 97.60%, correctly identifying 89.26% of 242 real-world store images and 80.30% of multi-distance validation images (optimal range 20–30 cm).",
         ],
         [
-          "Features & Usability",
-          "Includes automated OCR nutrition label extraction, high-sodium dietary advisories, and a bilingual (Tagalog/English) voice assistant powered by Gemini API.",
+          "AI & Health Advisory",
+          "CLARO combines cloud-based generative AI (Google Gemini 3.5 Flash) with an on-device bilingual rule-based fallback advisory engine. Dietary guidance is anchored to WHO and NIDDK clinical thresholds for hypertension, diabetes, cardiovascular disease, chronic kidney disease (CKD), gastroesophageal reflux disease (GERD), and food allergies. A 3-tier caching architecture (in-memory, local device storage, Firestore offline SQLite) ensures scanning, scoring, and advisories remain operational offline in supermarket connectivity dead zones.",
         ],
         [
-          "Field Results",
-          "Tested with 50 shoppers: achieved a 4.68/5 average satisfaction score and 84% of participants completed complex dietary evaluation tasks completely independently.",
+          "Admin Dashboard & Security",
+          "A React web dashboard enables Ever Plus Superstore staff to review user-submitted unrecognized product reports, verify FDA registration records (CPR number and validity date), and audit activity logs. Patient health data is encrypted at rest using AES-GCM via Cloudflare Worker proxy and Android Keystore (FlutterSecureStorage), with PII stripped before external AI requests.",
+        ],
+        [
+          "Field Evaluation",
+          "Piloted on-site at Ever Plus Superstore Inc. (Sampaloc, Manila). In User Acceptance Testing (UAT) evaluated under ISO/IEC 25010 standards, 50 grocery shoppers awarded CLARO a composite mean rating of 4.68 out of 5.00, and the store administrator rated the dashboard 4.90 out of 5.00, with 3 licensed medical professionals validating the clinical dietary logic.",
         ],
       ]}
       stats={[
-        ["98.55%", "mAP@50 detection accuracy"],
-        ["4.68/5", "average field satisfaction score"],
-        ["84%", "completed tasks independently"],
-        ["57", "distinct product classes trained"],
+        ["97.60%", "mAP@50 detection accuracy (held-out test)"],
+        ["4.68/5", "shopper UAT rating (ISO/IEC 25010, n=50)"],
+        ["57", "benchmarked product SKUs"],
+        ["12,454", "annotated training dataset images"],
       ]}
       tools={[
         "Flutter",
-        "Firebase",
+        "Firebase (Firestore & Auth)",
         "React",
-        "YOLOv8",
+        "YOLOv8s",
         "TensorFlow Lite",
-        "Gemini API",
-        "Mobile OCR",
+        "Gemini 3.5 Flash",
+        "Roboflow",
+        "Cloudflare Workers",
+        "Cloudinary",
+        "AES-GCM",
       ]}
-      showcase={
-        <ProjectMediaViewer
-          title="CLARO AI Mobile App"
-          simulator={<ClaroMobileShowcase />}
-          imageSrc="/images/claro-app.png"
-          imageAlt="CLARO Mobile Application Detection & Grocery Field Testing"
-        />
-      }
+      showcase={<ClaroShowcase />}
+      showcaseLabel="$ open claro_gallery"
       links={[
         {
-          label: "GitHub Repository (Flutter & YOLOv8 Weights)",
+          label: "git remote: claro (Flutter & YOLOv8) ->",
           href: PORTFOLIO_CONFIG.projects.claro.githubUrl,
           external: true,
         },
       ]}
-      next={["Next: 03 HNL Construction ->", "hnl"]}
+      next={["cd ./hnl ->", "hnl"]}
       navigate={navigate}
     />
   )
@@ -1962,19 +1700,20 @@ function Hnl({ navigate }: { navigate: (page: Page) => void }) {
           imageAlt="HNL Construction Responsive Website & Sanity CMS Studio"
         />
       }
+      showcaseLabel="$ open hnl_estimator_preview"
       links={[
         {
-          label: "Live Client Website (HNL Construction)",
+          label: "HTTP: hnl-construction.com ->",
           href: PORTFOLIO_CONFIG.projects.hnl.liveSiteUrl,
           external: true,
         },
         {
-          label: "GitHub Repository (Next.js & Sanity Studio)",
+          label: "git remote: hnl (Next.js & Sanity) ->",
           href: PORTFOLIO_CONFIG.projects.hnl.githubUrl,
           external: true,
         },
       ]}
-      next={["Back to Projects ->", "projects"]}
+      next={["cd ../projects", "projects"]}
       navigate={navigate}
     />
   )
@@ -2027,22 +1766,22 @@ function Skills() {
   return (
     <>
       <Section>
-        <SectionLabel>Skills</SectionLabel>
+        <SectionLabel>$ cat skills.manifest</SectionLabel>
       </Section>
       {skillGroups.map(([label, tags, note]) => (
         <Section key={label}>
-          <SectionLabel>{label}</SectionLabel>
+          <SectionLabel>{`$ ls ${label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "")}/`}</SectionLabel>
           <div className="indented tags">
             {tags.map((tag) => (
               <Tag key={tag}>{tag}</Tag>
             ))}
           </div>
-          <p className="indented muted">{note}</p>
+          <p className="indented muted">&gt; {note}</p>
         </Section>
       ))}
       <Divider type="C" />
       <p className="soft-skills">
-        Project management / Team leadership / Cross-functional collaboration /
+        &gt; Project management / Team leadership / Cross-functional collaboration /
         Problem solving / Analytical thinking / Technical communication
       </p>
     </>
@@ -2053,7 +1792,7 @@ function Achievements() {
   return (
     <>
       <Section>
-        <SectionLabel>Achievements &amp; Honors</SectionLabel>
+        <SectionLabel>$ ls -t achievements/</SectionLabel>
         <TimeTable
           rows={[
             [
@@ -2073,14 +1812,14 @@ function Achievements() {
       </Section>
       <Divider type="B" />
       <Section>
-        <SectionLabel>Certifications &amp; Training</SectionLabel>
+        <SectionLabel>$ cat certifications.log</SectionLabel>
         <div className="indented block-list">
-          <p>&bull; R for Data Science, Great Learning Academy</p>
+          <p><span className="tree-char">├── </span>R for Data Science, Great Learning Academy</p>
           <p>
-            &bull; TOPCIT 2025 Participant, Technological Institute of the
+            <span className="tree-char">├── </span>TOPCIT 2025 Participant, Technological Institute of the
             Philippines - Manila, 2025
           </p>
-          <p>&bull; Microsoft Power BI Data Analyst Training (In Progress)</p>
+          <p><span className="tree-char">└── </span>Microsoft Power BI Data Analyst Training (In Progress)</p>
         </div>
       </Section>
     </>
@@ -2094,16 +1833,16 @@ function Resume() {
 
   return (
     <Section>
-      <SectionLabel>Curriculum Vitae / Resume</SectionLabel>
+      <SectionLabel>$ cat resume.pdf | lpr</SectionLabel>
       <div
         className="indented"
         style={{ display: "flex", gap: "12px", alignItems: "center" }}
       >
         <BracketButton onClick={handlePrint}>
-          Download CV / Print (PDF)
+          print resume.pdf
         </BracketButton>
         <span style={{ fontSize: "12px", color: "var(--ink-muted)" }}>
-          (Opens standard browser PDF print dialog)
+          &gt; Opens browser print / PDF export dialog
         </span>
       </div>
 
@@ -2213,11 +1952,11 @@ function Resume() {
             <strong>
               CLARO: AI Mobile Food Advisory Application &mdash; Capstone PM
             </strong>
-            <span>Oct 2026</span>
+            <span>Nov 2026</span>
           </div>
           <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#444" }}>
             &bull; Trained YOLOv8s computer vision model on 12,454 annotated
-            images (57 Filipino CPG classes) hitting 98.55% mAP@50.
+            images (57 Filipino CPG classes) hitting 97.60% mAP@50.
             <br />
             &bull; Quantized to TFLite for real-time offline smartphone scanning
             and integrated Gemini API for bilingual voice advice.
@@ -2265,7 +2004,7 @@ function Resume() {
 
 function Contact() {
   const [copied, setCopied] = useState(false)
-  const [sent, setSent] = useState(false)
+  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle")
   const [formData, setFormData] = useState({ name: "", email: "", message: "" })
 
   const copyEmail = () => {
@@ -2274,20 +2013,43 @@ function Contact() {
     setTimeout(() => setCopied(false), 2500)
   }
 
-  const submit = (event: FormEvent) => {
+  const submit = async (event: FormEvent) => {
     event.preventDefault()
-    setSent(true)
-    // Prefill mailto fallback link if desired
-    const mailtoUrl = `mailto:${PORTFOLIO_CONFIG.profile.email}?subject=Portfolio Inquiry from ${encodeURIComponent(
-      formData.name,
-    )}&body=${encodeURIComponent(`From: ${formData.name} (${formData.email})\n\nMessage:\n${formData.message}`)}`
-    window.location.href = mailtoUrl
+    setStatus("sending")
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: PORTFOLIO_CONFIG.contact.web3formsAccessKey,
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          message: formData.message.trim(),
+          subject: `Portfolio Inquiry from ${formData.name.trim()}`,
+          from_name: `${formData.name.trim()} via Portfolio`,
+          replyto: formData.email.trim(),
+        }),
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        setStatus("success")
+        setFormData({ name: "", email: "", message: "" })
+      } else {
+        setStatus("error")
+      }
+    } catch {
+      setStatus("error")
+    }
   }
 
   return (
     <>
       <Section>
-        <SectionLabel>Contact</SectionLabel>
+        <SectionLabel>$ ./contact.sh --connect</SectionLabel>
         <SelectedParagraph>
           Open to internships, entry-level opportunities in data analytics, and
           tech collaborations. Let's connect.
@@ -2299,12 +2061,10 @@ function Contact() {
             </a>
             <button
               onClick={copyEmail}
+              className="bracket-button"
               style={{
                 fontSize: "11px",
                 padding: "2px 8px",
-                border: "1px solid var(--ink-line)",
-                background: copied ? "var(--ink-primary)" : "transparent",
-                color: copied ? "var(--invert-text)" : "var(--ink-muted)",
               }}
             >
               {copied ? "[ COPIED! ]" : "[ COPY EMAIL ]"}
@@ -2366,13 +2126,24 @@ function Contact() {
             placeholder="Hi Mary, I'd like to discuss an opportunity..."
           />
         </label>
-        <BracketButton type="submit">
-          Send Message via Email Client
+        <BracketButton type="submit" disabled={status === "sending"}>
+          {status === "sending" ? "transmitting..." : "./send_message.sh"}
         </BracketButton>
-        {sent && (
-          <p className="success">
-            &gt; Opening default email client with your prefilled message. Thank
-            you!
+        {status === "success" && (
+          <p className="success" style={{ marginTop: "12px", lineHeight: 1.5 }}>
+            &gt; [SUCCESS 200 OK]: Message transmitted directly to {PORTFOLIO_CONFIG.profile.email}. I&apos;ll get back to you shortly!
+          </p>
+        )}
+        {status === "error" && (
+          <p style={{ marginTop: "12px", color: "var(--ink-muted)", lineHeight: 1.5 }}>
+            &gt; [TRANSMISSION ERROR]: Could not reach email gateway. You can send directly via{" "}
+            <a
+              href={`mailto:${PORTFOLIO_CONFIG.profile.email}?subject=Portfolio Inquiry from ${encodeURIComponent(formData.name)}&body=${encodeURIComponent(formData.message)}`}
+              style={{ textDecoration: "underline", color: "var(--ink-primary)" }}
+            >
+              mailto client
+            </a>{" "}
+            or use the copy button above.
           </p>
         )}
       </form>
@@ -2389,27 +2160,34 @@ function Notes() {
       summary:
         "Combining PSA, PhilRice and NASA POWER data into a seasonal Holt-Winters forecasting engine in Python and Power BI.",
       content:
-        "The project required harmonizing 18 distinct regional datasets with disparate time granularities. Using Python and Pandas, we built automated ETL routines to clean outlier data points from weather anomalies and applied Holt-Winters exponential smoothing. The resulting 3.6% backtest MAPE allowed regional planners to observe seasonal peaks with 95% confidence bands.",
+        "The project required harmonizing 18 distinct regional datasets with disparate time granularities across retail prices, provincial paddy yields, and meteorological features (precipitation and solar radiation). Using Python and Pandas, we built automated ETL routines to clean outlier data points from weather anomalies and applied additive Holt-Winters exponential smoothing. The resulting 3.6% backtest MAPE allowed regional planners and agricultural stakeholders to observe price volatility trends with 95% confidence intervals directly in an interactive star-schema Power BI dashboard.",
     },
     {
-      title: "Training YOLOv8 on 12,454 Filipino CPG products",
+      title: "Clinical Risk Stratification & Guideline Retrieval in EHR Systems",
       summary:
-        "Overcoming class imbalance in local supermarket packaging and compiling for TensorFlow Lite edge inference.",
+        "Predicting 30-day diabetic inpatient readmissions using cost-sensitive XGBoost with SHAP explainability and hybrid BM25 + dense guideline retrieval.",
       content:
-        "Standard object detection models have high accuracy on generic items (apples, cups) but degrade on varied Philippine supermarket packaging like canned corned beef and instant noodles. We manually labeled and augmented 12,454 images across 57 classes, tuning anchor box ratios and using FP16 quantization to achieve 98.55% mAP@50 at 32 FPS on mobile devices.",
+        "Electronic health record datasets present severe class imbalance, extreme sparsity across clinical codes, and high collinearity among lab biomarkers. We trained cost-sensitive gradient boosted trees (XGBoost) evaluated with AUROC (0.676), computing TreeSHAP values for each individual prediction to give clinicians transparent attribution of inpatient length-of-stay, lab test counts, and prior admissions. To support post-discharge planning, a hybrid retrieval pipeline combining lexical BM25 and dense semantic embeddings queries curated clinical practice guidelines, surfacing evidence-grounded recommendations tailored to each patient profile.",
     },
     {
-      title: "Connecting GitHub Works & Deploying Your Portfolio",
+      title: "Training YOLOv8 for Edge Vision on Filipino CPG Products",
       summary:
-        "Step-by-step documentation on keeping your portfolio code and repositories synchronized on GitHub.",
+        "Overcoming retail packaging glare, class imbalance across 57 SKUs, and building an offline-first 3-tier advisory cache for mobile inference.",
       content:
-        "To connect your personal GitHub repositories, update `src/config.ts` with your GitHub username and project URLs. You can initialize a git repository locally with `git init`, add your GitHub remote with `git remote add origin https://github.com/<username>/portfolio.git`, and deploy to Vercel, Netlify, or GitHub Pages with automated CI/CD builds on every git push.",
+        "Standard object detection models struggle with the specular glare of canned goods and deformed flexible noodle packaging under fluorescent supermarket lighting. For CLARO, we custom-trained a YOLOv8s architecture across 57 benchmark SKUs using 12,454 annotated frames. On-site pilot evaluation at Ever Plus Superstore (Sampaloc, Manila) verified 97.60% mAP@50 and 89.26% accuracy on 242 real-world captures, supporting multi-item scanning of up to 3 products at 20–30 cm. An on-device 3-tier cache and bilingual clinical rule engine allow Nutri-Score, NOVA, and FDA registration verification to operate seamlessly without cellular connectivity.",
+    },
+    {
+      title: "Performance Engineering & Dynamic Estimation for Corporate Web Portals",
+      summary:
+        "Architecting a 100% Lighthouse Next.js corporate portal with interactive architectural cost estimation, Sanity CMS, and automated lead capture.",
+      content:
+        "For the HNL Construction platform, our goal was enterprise-grade web performance paired with self-service client estimation tools. We engineered a dynamic floor plan and materials calculator with live arithmetic in TypeScript, backed by Sanity Headless CMS for structured content management. Server-side rendering, responsive SVG blueprints, and atomic Tailwind CSS delivery achieved perfect 100/100 Lighthouse scores across performance, accessibility, best practices, and SEO, driving qualified client inquiries through PostgreSQL and Resend transactional email.",
     },
   ]
 
   return (
     <Section>
-      <SectionLabel>Technical Notes &amp; Engineering Logs</SectionLabel>
+      <SectionLabel>$ ls -la engineering_logs/</SectionLabel>
       <p className="indented muted">
         Behind-the-scenes engineering write-ups and technical methodologies.
       </p>
@@ -2430,21 +2208,44 @@ function Notes() {
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                alignItems: "center",
+                alignItems: "baseline",
+                flexWrap: "wrap",
+                gap: "8px 12px",
                 width: "100%",
               }}
             >
-              <span>0{index + 1}</span>
-              <strong style={{ flex: 1, marginLeft: "16px" }}>
-                {note.title}
-              </strong>
-              <span>{openNote === index ? "[ CLOSE - ]" : "[ READ + ]"}</span>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: "12px",
+                  flex: "1 1 240px",
+                  minWidth: 0,
+                }}
+              >
+                <span
+                  style={{
+                    fontWeight: 600,
+                    color: "var(--ink-muted)",
+                    flexShrink: 0,
+                  }}
+                >
+                  0{index + 1}
+                </span>
+                <strong style={{ minWidth: 0, overflowWrap: "break-word" }}>
+                  {note.title}
+                </strong>
+              </div>
+              <span style={{ flexShrink: 0, fontSize: "12px" }}>
+                {openNote === index ? "[ CLOSE - ]" : "[ READ + ]"}
+              </span>
             </div>
             <p
               style={{
-                margin: "4px 0 0 36px",
+                margin: "4px 0 0 clamp(16px, 3.5vw, 32px)",
                 fontSize: "12px",
                 color: "var(--ink-muted)",
+                lineHeight: 1.5,
               }}
             >
               {note.summary}
@@ -2452,7 +2253,7 @@ function Notes() {
             {openNote === index && (
               <div
                 style={{
-                  margin: "8px 0 0 36px",
+                  margin: "8px 0 0 clamp(16px, 3.5vw, 32px)",
                   padding: "16px",
                   border: "1px dashed var(--ink-line)",
                   background: "rgba(169, 194, 176, 0.12)",
@@ -2475,7 +2276,7 @@ function NotFound({ navigate }: { navigate: (page: Page) => void }) {
     <section className="not-found">
       <h1>&gt; Error 404: Page not found</h1>
       <button className="bracket-button" onClick={() => navigate("home")}>
-        <span data-label="Return Home">[ Return Home ]</span>
+        <span data-label="cd ~">[ cd ~ ]</span>
       </button>
     </section>
   )
@@ -2576,6 +2377,7 @@ function App() {
     about: <About navigate={navigate} />,
     projects: <Projects navigate={navigate} />,
     rice: <Rice navigate={navigate} />,
+    readmission: <Readmission navigate={navigate} />,
     claro: <Claro navigate={navigate} />,
     hnl: <Hnl navigate={navigate} />,
     skills: <Skills />,

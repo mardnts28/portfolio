@@ -15,12 +15,15 @@ export const PORTFOLIO_CONFIG = {
     linkedin: "https://www.linkedin.com/in/mary-ardientes-aa8598315",
     githubUsername: "mardnts28",
     githubUrl: "https://github.com/mardnts28",
-    photo: "/images/profile.jpg",
+    photo: "/images/2x2.JPG",
   },
   projects: {
     rice: {
       githubUrl: "https://github.com/mardnts28/ph-rice-market-forecast",
-      liveReportUrl: "https://app.powerbi.com",
+    },
+    readmission: {
+      notebookUrl:
+        "https://colab.research.google.com/drive/1fhKt5AGUQko0uDKgX1yFLrE1nqXzR6xN?usp=sharing",
     },
     claro: {
       githubUrl: "https://github.com/mardnts28/CLARO",
@@ -82,4 +85,7 @@ export const PORTFOLIO_CONFIG = {
       tags: ["WebSockets", "Networking", "Web"],
     },
   ],
+  contact: {
+    web3formsAccessKey: "dfe99261-c6c2-4d61-8d91-4734b2f6c8b9",
+  },
 } as const
