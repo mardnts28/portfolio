@@ -198,80 +198,26 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* top padding makes room for the label strip hanging above the box */
   padding-top: 32px;
 }
 
 .bbox-wrapper {
+  /* ── Tunable: detection-box position (% of photo area) ────────── */
+  --detect-top: 5%;
+  --detect-left: 12%;
+  --detect-width: 76%;
+  --detect-height: 82%;
+
+  /* ── Tunable: photo anchor & status bar styling ───────────────── */
+  --photo-border-color: var(--ink-primary);
+  --photo-border-width: 1px;
+  --status-text-color: var(--ink-muted);
+  --status-font-size: 8.5px;
+
   position: relative;
   width: 270px;
   height: 270px;
-  /* subtle continuous jitter mimicking live detection */
-  animation: bbox-jitter 3.2s steps(1, end) infinite;
-}
-
-/* jitter: tiny random translate + occasional glitch frame */
-@keyframes bbox-jitter {
-  0% {
-    transform: translate(0, 0);
-  }
-
-  5% {
-    transform: translate(1px, -1px);
-  }
-
-  10% {
-    transform: translate(-1px, 0);
-  }
-
-  18% {
-    transform: translate(0, 1px);
-  }
-
-  25% {
-    transform: translate(1px, 1px);
-  }
-
-  30% {
-    transform: translate(0, 0);
-  }
-
-  40% {
-    transform: translate(-1px, -1px);
-  }
-
-  48% {
-    transform: translate(2px, 0);
-  }
-
-  50% {
-    transform: translate(0, 0);
-  }
-
-  /* glitch spike */
-  62% {
-    transform: translate(-2px, 1px) skewX(-0.4deg);
-  }
-
-  63% {
-    transform: translate(0, 0) skewX(0deg);
-  }
-
-  75% {
-    transform: translate(1px, -1px);
-  }
-
-  82% {
-    transform: translate(0, 1px);
-  }
-
-  90% {
-    transform: translate(-1px, 0);
-  }
-
-  100% {
-    transform: translate(0, 0);
-  }
+  margin-bottom: 28px;
 }
 
 @keyframes claro-pulse {
@@ -297,6 +243,7 @@ textarea:focus-visible {
   height: 100%;
   overflow: hidden;
   background: #fbfdf9;
+  border: var(--photo-border-width) solid var(--photo-border-color);
 }
 
 .portrait-img {
@@ -307,142 +254,191 @@ textarea:focus-visible {
   display: block;
 }
 
-/* Corner L-brackets — drawn with pseudo or border tricks */
+/* ── Detection box overlay (positioned inside the photo) ────────── */
+
+.bbox-detect {
+  position: absolute;
+  top: var(--detect-top);
+  left: var(--detect-left);
+  width: var(--detect-width);
+  height: var(--detect-height);
+  border: 2px solid var(--accent-cursor);
+  pointer-events: none;
+  z-index: 10;
+  animation:
+    bbox-jitter 3.2s steps(1, end) infinite,
+    bbox-border-flicker 4s steps(1, end) infinite;
+}
+
+/* jitter: tiny random translate + occasional glitch frame */
+@keyframes bbox-jitter {
+  0% { transform: translate(0, 0); }
+  5% { transform: translate(1px, -1px); }
+  10% { transform: translate(-1px, 0); }
+  18% { transform: translate(0, 1px); }
+  25% { transform: translate(1px, 1px); }
+  30% { transform: translate(0, 0); }
+  40% { transform: translate(-1px, -1px); }
+  48% { transform: translate(2px, 0); }
+  50% { transform: translate(0, 0); }
+  62% { transform: translate(-2px, 1px) skewX(-0.4deg); }
+  63% { transform: translate(0, 0) skewX(0deg); }
+  75% { transform: translate(1px, -1px); }
+  82% { transform: translate(0, 1px); }
+  90% { transform: translate(-1px, 0); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes bbox-border-flicker {
+  0%, 59%, 61%, 100% { opacity: 1; }
+  60% { opacity: 0.4; }
+}
+
+/* Corner ticks — thicker L-marks at each corner of the detection box */
 .bbox-corner {
   position: absolute;
-  width: 32px;
-  height: 32px;
-  z-index: 10;
+  width: 14px;
+  height: 14px;
+  z-index: 11;
   pointer-events: none;
 }
 
 .bbox-tl {
-  top: -4px;
-  left: -4px;
-  border-top: 4px solid var(--accent-cursor);
-  border-left: 4px solid var(--accent-cursor);
+  top: -2px;
+  left: -2px;
+  border-top: 3px solid var(--accent-cursor);
+  border-left: 3px solid var(--accent-cursor);
 }
 
 .bbox-tr {
-  top: -4px;
-  right: -4px;
-  border-top: 4px solid var(--accent-cursor);
-  border-right: 4px solid var(--accent-cursor);
+  top: -2px;
+  right: -2px;
+  border-top: 3px solid var(--accent-cursor);
+  border-right: 3px solid var(--accent-cursor);
 }
 
 .bbox-bl {
-  bottom: -4px;
-  left: -4px;
-  border-bottom: 4px solid var(--accent-cursor);
-  border-left: 4px solid var(--accent-cursor);
+  bottom: -2px;
+  left: -2px;
+  border-bottom: 3px solid var(--accent-cursor);
+  border-left: 3px solid var(--accent-cursor);
 }
 
 .bbox-br {
-  bottom: -4px;
-  right: -4px;
-  border-bottom: 4px solid var(--accent-cursor);
-  border-right: 4px solid var(--accent-cursor);
+  bottom: -2px;
+  right: -2px;
+  border-bottom: 3px solid var(--accent-cursor);
+  border-right: 3px solid var(--accent-cursor);
 }
 
-/* accent border on the full box */
-.bbox-wrapper::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border: 3px solid color-mix(in srgb, var(--accent-cursor) 60%, transparent);
-  pointer-events: none;
-  z-index: 5;
-  animation: bbox-border-flicker 4s steps(1, end) infinite;
-}
-
-@keyframes bbox-border-flicker {
-
-  0%,
-  59%,
-  61%,
-  100% {
-    opacity: 1;
-  }
-
-  60% {
-    opacity: 0.3;
-  }
-}
-
-/* YOLOv8 label strip — positioned at top-left, hanging outside top edge */
+/* YOLOv8 label tag — attached to top-left edge of the detection box */
 .bbox-label {
   position: absolute;
-  top: -26px;
+  top: -22px;
   left: -2px;
-  padding: 3px 9px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 8px;
   background: var(--accent-cursor);
   color: var(--bg-page);
   font-family: "IBM Plex Mono", monospace;
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
   z-index: 12;
   animation: bbox-label-flicker 5s steps(1, end) infinite;
 }
 
+/* Dimmer confidence score (decorative only) */
+.bbox-conf {
+  font-weight: 400;
+  opacity: 0.55;
+  letter-spacing: 0.06em;
+  font-size: 9px;
+}
+
 @keyframes bbox-label-flicker {
-
-  0%,
-  71%,
-  73%,
-  100% {
-    opacity: 1;
-  }
-
-  72% {
-    opacity: 0;
-  }
+  0%, 71%, 73%, 100% { opacity: 1; }
+  72% { opacity: 0; }
 }
 
-/* diagonal scan-line that sweeps down periodically */
-.bbox-scanline {
+/* Subtle center crosshair inside the detection box */
+.bbox-crosshair {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  transform: translate(-50%, -50%);
   pointer-events: none;
-  z-index: 8;
-  overflow: hidden;
+  z-index: 11;
 }
 
-.bbox-scanline::after {
+.bbox-crosshair::before,
+.bbox-crosshair::after {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg,
-      transparent 0%,
-      color-mix(in srgb, var(--accent-cursor) 60%, transparent) 50%,
-      transparent 100%);
-  animation: scan-sweep 3.8s ease-in-out infinite;
-  opacity: 0.7;
+  background: var(--accent-cursor);
+  opacity: 0.35;
 }
 
-@keyframes scan-sweep {
-  0% {
-    top: -2px;
-    opacity: 0;
-  }
+/* horizontal bar */
+.bbox-crosshair::before {
+  width: 10px;
+  height: 1px;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
 
-  5% {
-    opacity: 0.7;
-  }
+/* vertical bar */
+.bbox-crosshair::after {
+  width: 1px;
+  height: 10px;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+}
 
-  90% {
-    top: 100%;
-    opacity: 0.5;
-  }
+/* Status bar attached directly below photo */
+.bbox-status {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: calc(-1 * var(--photo-border-width));
+  border: var(--photo-border-width) solid var(--photo-border-color);
+  background: var(--bg-page);
+  padding: 3px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: var(--status-font-size);
+  line-height: 1.25;
+  color: var(--status-text-color);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-sizing: border-box;
+}
 
-  100% {
-    top: 100%;
-    opacity: 0;
-  }
+.bbox-status-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+}
+
+.bbox-status-meta {
+  white-space: nowrap;
+  opacity: 0.75;
+  font-size: 0.9em;
+  flex-shrink: 0;
 }
 
 /* placeholder inside bbox */
@@ -1084,8 +1080,8 @@ textarea:focus-visible {
   }
 
   .bbox-corner {
-    width: 26px;
-    height: 26px;
+    width: 12px;
+    height: 12px;
   }
 
   .display-name {
@@ -1371,14 +1367,24 @@ textarea:focus-visible {
   }
 
   .bbox-corner {
-    width: 20px;
-    height: 20px;
+    width: 10px;
+    height: 10px;
   }
 
   .bbox-label {
-    font-size: 9px;
-    padding: 2px 6px;
-    top: -22px;
+    font-size: 8px;
+    padding: 2px 5px;
+    top: -18px;
+    gap: 4px;
+  }
+
+  .bbox-conf {
+    font-size: 7px;
+  }
+
+  .bbox-status {
+    padding: 2px 4px;
+    font-size: 7.5px;
   }
 
   .hero-username-tag {

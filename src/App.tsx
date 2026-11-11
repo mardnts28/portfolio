@@ -156,8 +156,40 @@ function MenuOverlay({
   )
 }
 
-function SectionLabel({ children }: { children: ReactNode }) {
-  return <h2 className="section-label">{children}</h2>
+function SectionLabel({
+  cmd,
+  children,
+}: {
+  cmd?: string
+  children: ReactNode
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        gap: "4px",
+        alignSelf: "flex-start",
+      }}
+    >
+      {cmd && (
+        <span
+          style={{
+            fontSize: "11px",
+            color: "var(--ink-muted)",
+            letterSpacing: "0.06em",
+            fontFamily: "inherit",
+            textTransform: "none",
+          }}
+          aria-hidden="true"
+        >
+          {cmd}
+        </span>
+      )}
+      <h2 className="section-label">{children}</h2>
+    </div>
+  )
 }
 
 function SelectedParagraph({
@@ -400,7 +432,7 @@ const projects: Project[] = [
     title: "CLARO: AI-Powered Mobile App",
     summary:
       "On-device YOLOv8s model (57 SKUs, 12,454 images) deployed via TFLite with Gemini-powered OCR advisories & bilingual voice assistant — piloted with 50 shoppers at a Manila supermarket.",
-    metric: "97.60% mAP@50",
+    metric: "89.26% in-store",
     tags: ["Flutter", "YOLOv8", "TFLite", "Gemini API"],
     year: "2026",
     page: "claro",
@@ -479,8 +511,9 @@ function Footer() {
         <button
           className="back-to-top"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label="Back to top of page"
         >
-          $ cd ~  # top ^
+          [ Back to Top ^ ]
         </button>
       </div>
     </footer>
@@ -492,29 +525,13 @@ function PortraitPhoto() {
   const photo = PORTFOLIO_CONFIG.profile.photo
 
   return (
-    <div className="bbox-container" aria-label="Professional photo of Mary Faith Ardientes">
-      {/* YOLOv8-style detection bounding box */}
+    <div className="bbox-container">
       <div className="bbox-wrapper">
-        {/* Corner brackets */}
-        <span className="bbox-corner bbox-tl" aria-hidden="true" />
-        <span className="bbox-corner bbox-tr" aria-hidden="true" />
-        <span className="bbox-corner bbox-bl" aria-hidden="true" />
-        <span className="bbox-corner bbox-br" aria-hidden="true" />
-
-        {/* Label strip — top left like YOLO detection label */}
-        <div className="bbox-label" aria-hidden="true">
-          TIP MANILA &bull; BS IT &apos;27
-        </div>
-
-        {/* Confidence / scan line overlay */}
-        <div className="bbox-scanline" aria-hidden="true" />
-
-        {/* Photo or placeholder */}
         <div className="bbox-photo">
           {photo && !imgError ? (
             <img
               src={photo}
-              alt={PORTFOLIO_CONFIG.profile.name}
+              alt="Professional photo of Mary Faith Ardientes"
               className="portrait-img"
               onError={() => setImgError(true)}
             />
@@ -529,6 +546,21 @@ function PortraitPhoto() {
               </span>
             </div>
           )}
+        </div>
+        <div className="bbox-detect" aria-hidden="true">
+          <span className="bbox-corner bbox-tl" />
+          <span className="bbox-corner bbox-tr" />
+          <span className="bbox-corner bbox-bl" />
+          <span className="bbox-corner bbox-br" />
+          <div className="bbox-label">
+            <span>MARY</span>
+            <span className="bbox-conf" aria-hidden="true">0.98</span>
+          </div>
+          <div className="bbox-crosshair" />
+        </div>
+        <div className="bbox-status">
+          <span className="bbox-status-label">TIP MANILA &bull; BS IT &apos;27</span>
+          <span className="bbox-status-meta" aria-hidden="true">1 face detected &bull; 0.98</span>
         </div>
       </div>
     </div>
@@ -565,13 +597,13 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
           </SelectedParagraph>
           <div className="link-row">
             <InlineLink to="about" navigate={navigate}>
-              cat ./about
+              About Mary -&gt;
             </InlineLink>
             <InlineLink to="projects" navigate={navigate}>
-              ls ./projects
+              View Projects -&gt;
             </InlineLink>
             <InlineLink href={PORTFOLIO_CONFIG.profile.githubUrl} external>
-              ssh github.com -&gt;
+              GitHub Profile -&gt;
             </InlineLink>
           </div>
         </div>
@@ -579,7 +611,7 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
       </section>
       <Divider type="A" />
       <Section>
-        <SectionLabel>$ cat status.env</SectionLabel>
+        <SectionLabel cmd="$ cat status.env">CURRENT STATUS</SectionLabel>
         <div className="indented status-list">
           <p><span className="tree-char">├── </span>OPEN_TO: Internships &amp; entry-level data analyst roles</p>
           <p><span className="tree-char">├── </span>LOCATION: {PORTFOLIO_CONFIG.profile.location}</p>
@@ -588,7 +620,7 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
         </div>
       </Section>
       <Section>
-        <SectionLabel>$ ls -t timeline/</SectionLabel>
+        <SectionLabel cmd="$ ls -t timeline/">CAREER TIMELINE</SectionLabel>
         <TimeTable
           rows={[
             [
@@ -615,13 +647,13 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
         />
         <div className="indented">
           <InlineLink to="achievements" navigate={navigate}>
-            ls ./achievements
+            View Achievements -&gt;
           </InlineLink>
         </div>
       </Section>
       <Divider type="B" />
       <Section>
-        <SectionLabel>$ ls -la projects/</SectionLabel>
+        <SectionLabel cmd="$ ls -la projects/">FEATURED PROJECTS</SectionLabel>
         <div className="project-list">
           {projects.map((project) => (
             <ProjectIndexRow
@@ -633,15 +665,15 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
         </div>
         <div className="indented">
           <InlineLink to="projects" navigate={navigate}>
-            ls -a ./projects
+            Explore All Projects -&gt;
           </InlineLink>
         </div>
       </Section>
       <Divider type="C" />
       <Section>
-        <SectionLabel>$ head -n 4 metrics.log</SectionLabel>
+        <SectionLabel cmd="$ head -n 4 metrics.log">KEY PERFORMANCE METRICS</SectionLabel>
         <div className="stats-grid">
-          <StatBlock value="97.60%" caption="mAP@50, CLARO YOLOv8 model" />
+          <StatBlock value="89.26%" caption="in-store accuracy, CLARO YOLOv8" />
           <StatBlock
             value="3.6%"
             caption="backtest MAPE, rice price forecast"
@@ -657,7 +689,7 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
         </div>
       </Section>
       <Section>
-        <SectionLabel>$ cat skills.txt</SectionLabel>
+        <SectionLabel cmd="$ cat skills.txt">CORE SKILLS &amp; TECHNOLOGIES</SectionLabel>
         <div className="indented tags">
           {[
             "Python",
@@ -675,18 +707,18 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
         </div>
         <div className="indented">
           <InlineLink to="skills" navigate={navigate}>
-            cat ./skills
+            View Full Skills Manifest -&gt;
           </InlineLink>
         </div>
       </Section>
       <Section>
-        <SectionLabel>$ ./contact.sh</SectionLabel>
+        <SectionLabel cmd="$ ./contact.sh">GET IN TOUCH</SectionLabel>
         <p className="indented">
           &gt; Open to connecting and collaborating on data-driven projects.
         </p>
         <div className="indented">
           <InlineLink to="contact" navigate={navigate}>
-            ./contact.sh --connect
+            Get In Touch -&gt;
           </InlineLink>
         </div>
       </Section>
@@ -702,7 +734,7 @@ function About({ navigate }: { navigate: (page: Page) => void }) {
   return (
     <>
       <Section>
-        <SectionLabel>$ cat about.md</SectionLabel>
+        <SectionLabel cmd="$ cat about.md">ABOUT ME</SectionLabel>
         <SelectedParagraph>
           I'm a 4th-year Information Technology student who enjoys turning data
           into useful insights and building software that solves everyday
@@ -712,7 +744,7 @@ function About({ navigate }: { navigate: (page: Page) => void }) {
       </Section>
       <Divider type="D" />
       <Section>
-        <SectionLabel>$ cat focus_areas.txt</SectionLabel>
+        <SectionLabel cmd="$ cat focus_areas.txt">FOCUS AREAS</SectionLabel>
         <div className="indented block-list">
           <p>
             &gt; Data analytics: Python data pipelines, time-series forecasting,
@@ -729,7 +761,7 @@ function About({ navigate }: { navigate: (page: Page) => void }) {
         </div>
       </Section>
       <Section>
-        <SectionLabel>$ cat education.log</SectionLabel>
+        <SectionLabel cmd="$ cat education.log">EDUCATION</SectionLabel>
         <TimeTable
           rows={[
             [
@@ -740,14 +772,14 @@ function About({ navigate }: { navigate: (page: Page) => void }) {
         />
       </Section>
       <Section>
-        <SectionLabel>$ cat currently.txt</SectionLabel>
+        <SectionLabel cmd="$ cat currently.txt">CURRENT PURSUITS</SectionLabel>
         <p className="indented">
           &gt; Strengthening my skills in predictive analytics, econometrics, and
           machine learning while documenting open-source codebases on GitHub.
         </p>
       </Section>
       <Section>
-        <SectionLabel>$ cat looking_for.txt</SectionLabel>
+        <SectionLabel cmd="$ cat looking_for.txt">LOOKING FOR</SectionLabel>
         <p className="indented">
           &gt; Internships and entry-level opportunities in data analytics, business
           intelligence, and related IT fields.
@@ -755,10 +787,10 @@ function About({ navigate }: { navigate: (page: Page) => void }) {
       </Section>
       <div className="link-row indented">
         <InlineLink to="resume" navigate={navigate}>
-          cat resume.pdf
+          View Resume -&gt;
         </InlineLink>
         <InlineLink to="projects" navigate={navigate}>
-          ls ./projects
+          View Projects -&gt;
         </InlineLink>
       </div>
     </>
@@ -770,7 +802,7 @@ function Projects({ navigate }: { navigate: (page: Page) => void }) {
   const filters = ["All", "Data", "AI and Mobile", "Web"]
   return (
     <Section>
-      <SectionLabel>$ ls -la projects/</SectionLabel>
+      <SectionLabel cmd="$ ls -la projects/">PROJECT DIRECTORY</SectionLabel>
       <div className="filter-row" aria-label="Project filters">
         <span style={{ color: "var(--ink-muted)", alignSelf: "center", marginRight: "8px" }}>
           $ filter:
@@ -801,7 +833,7 @@ function Projects({ navigate }: { navigate: (page: Page) => void }) {
       </div>
       <Divider type="B" />
       <Section>
-        <SectionLabel>$ git remote -v --works</SectionLabel>
+        <SectionLabel cmd="$ git remote -v --works">ADDITIONAL OPEN SOURCE WORKS</SectionLabel>
         <p className="indented muted" style={{ marginBottom: "16px" }}>
           &gt; Public repositories on{" "}
           <a
@@ -980,8 +1012,12 @@ function CaseStudy({
   return (
     <>
       <div className="case-breadcrumb">
-        <button onClick={() => navigate("projects")} className="breadcrumb-btn">
-          &lt; cd ../projects
+        <button
+          onClick={() => navigate("projects")}
+          className="breadcrumb-btn"
+          aria-label="Return to projects catalog"
+        >
+          &lt; Back to Projects
         </button>
         <span className="breadcrumb-divider">/</span>
         <span className="breadcrumb-current">{title.split(":")[0]}</span>
@@ -993,13 +1029,15 @@ function CaseStudy({
       <Divider type="A" />
       {sections.map(([label, copy]) => (
         <Section key={label}>
-          <SectionLabel>{`$ cat ${label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "")}.txt`}</SectionLabel>
+          <SectionLabel cmd={`$ cat ${label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "")}.txt`}>
+            {label.toUpperCase()}
+          </SectionLabel>
           <p className="indented case-copy">{copy}</p>
         </Section>
       ))}
       {stats && (
         <Section>
-          <SectionLabel>$ head -n 4 metrics.log</SectionLabel>
+          <SectionLabel cmd="$ head -n 4 metrics.log">KEY METRICS &amp; RESULTS</SectionLabel>
           <div className="stats-grid case-stats">
             {stats.map(([value, caption]) => (
               <StatBlock key={value} value={value} caption={caption} />
@@ -1008,7 +1046,7 @@ function CaseStudy({
         </Section>
       )}
       <Section>
-        <SectionLabel>$ cat dependencies.json</SectionLabel>
+        <SectionLabel cmd="$ cat dependencies.json">TECHNOLOGIES &amp; TOOLS</SectionLabel>
         <div className="indented tags">
           {tools.map((tool) => (
             <Tag key={tool}>{tool}</Tag>
@@ -1017,12 +1055,14 @@ function CaseStudy({
       </Section>
       {showcase && (
         <Section>
-          <SectionLabel>{showcaseLabel || "$ open preview"}</SectionLabel>
+          <SectionLabel cmd={showcaseLabel || "$ open preview"}>
+            INTERACTIVE PREVIEW &amp; ARTIFACTS
+          </SectionLabel>
           <div className="indented">{showcase}</div>
         </Section>
       )}
       <Section>
-        <SectionLabel>$ git remote -v --links</SectionLabel>
+        <SectionLabel cmd="$ git remote -v --links">PROJECT LINKS &amp; SOURCE CODE</SectionLabel>
         <div className="indented link-row">
           {links.map((link) => (
             <InlineLink
@@ -1133,12 +1173,12 @@ function Rice({ navigate }: { navigate: (page: Page) => void }) {
       showcaseLabel="$ open rice_dashboard.pbix"
       links={[
         {
-          label: "git remote: rice-forecast (Python & Pipeline) ->",
+          label: "View GitHub Repository (Python & Pipeline)",
           href: PORTFOLIO_CONFIG.projects.rice.githubUrl,
           external: true,
         },
       ]}
-      next={["cd ./readmission ->", "readmission"]}
+      next={["Next: Diabetes Readmission Risk ->", "readmission"]}
       navigate={navigate}
     />
   )
@@ -1198,12 +1238,12 @@ function Readmission({ navigate }: { navigate: (page: Page) => void }) {
       ]}
       links={[
         {
-          label: "jupyter: diabetes_readmission.ipynb ->",
+          label: "Open Colab Notebook (Jupyter)",
           href: PORTFOLIO_CONFIG.projects.readmission.notebookUrl,
           external: true,
         },
       ]}
-      next={["cd ./claro ->", "claro"]}
+      next={["Next: CLARO AI Mobile App ->", "claro"]}
       navigate={navigate}
     />
   )
@@ -1383,10 +1423,10 @@ function Claro({ navigate }: { navigate: (page: Page) => void }) {
         ],
       ]}
       stats={[
+        ["89.26%", "in-store detection accuracy (242 real-world captures)"],
         ["97.60%", "mAP@50 detection accuracy (held-out test)"],
         ["4.68/5", "shopper UAT rating (ISO/IEC 25010, n=50)"],
         ["57", "benchmarked product SKUs"],
-        ["12,454", "annotated training dataset images"],
       ]}
       tools={[
         "Flutter",
@@ -1404,12 +1444,12 @@ function Claro({ navigate }: { navigate: (page: Page) => void }) {
       showcaseLabel="$ open claro_gallery"
       links={[
         {
-          label: "git remote: claro (Flutter & YOLOv8) ->",
+          label: "View GitHub Repository (Flutter & YOLOv8)",
           href: PORTFOLIO_CONFIG.projects.claro.githubUrl,
           external: true,
         },
       ]}
-      next={["cd ../projects", "projects"]}
+      next={["Back to Projects ->", "projects"]}
       navigate={navigate}
     />
   )
@@ -1455,12 +1495,12 @@ function Hnl({ navigate }: { navigate: (page: Page) => void }) {
       ]}
       links={[
         {
-          label: "git remote: hnl (Next.js & Sanity) ->",
+          label: "View GitHub Repository (Next.js & Sanity)",
           href: PORTFOLIO_CONFIG.projects.hnl.githubUrl,
           external: true,
         },
       ]}
-      next={["cd ../projects", "projects"]}
+      next={["Back to Projects ->", "projects"]}
       navigate={navigate}
     />
   )
@@ -1513,11 +1553,13 @@ function Skills() {
   return (
     <>
       <Section>
-        <SectionLabel>$ cat skills.manifest</SectionLabel>
+        <SectionLabel cmd="$ cat skills.manifest">TECHNICAL SKILLS MANIFEST</SectionLabel>
       </Section>
       {skillGroups.map(([label, tags, note]) => (
         <Section key={label}>
-          <SectionLabel>{`$ ls ${label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "")}/`}</SectionLabel>
+          <SectionLabel cmd={`$ ls ${label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "")}/`}>
+            {label.toUpperCase()}
+          </SectionLabel>
           <div className="indented tags">
             {tags.map((tag) => (
               <Tag key={tag}>{tag}</Tag>
@@ -1539,7 +1581,7 @@ function Achievements() {
   return (
     <>
       <Section>
-        <SectionLabel>$ ls -t achievements/</SectionLabel>
+        <SectionLabel cmd="$ ls -t achievements/">AWARDS &amp; RECOGNITIONS</SectionLabel>
         <TimeTable
           rows={[
             [
@@ -1559,7 +1601,7 @@ function Achievements() {
       </Section>
       <Divider type="B" />
       <Section>
-        <SectionLabel>$ cat certifications.log</SectionLabel>
+        <SectionLabel cmd="$ cat certifications.log">CERTIFICATIONS &amp; ASSESSMENTS</SectionLabel>
         <div className="indented block-list">
           <p><span className="tree-char">├── </span>R for Data Science, Great Learning Academy</p>
           <p>
@@ -1580,13 +1622,13 @@ function Resume() {
 
   return (
     <Section>
-      <SectionLabel>$ cat resume.pdf | lpr</SectionLabel>
+      <SectionLabel cmd="$ cat resume.pdf | lpr">CURRICULUM VITAE / RESUME</SectionLabel>
       <div
         className="indented"
         style={{ display: "flex", gap: "12px", alignItems: "center" }}
       >
         <BracketButton onClick={handlePrint}>
-          print resume.pdf
+          Print / Save PDF
         </BracketButton>
         <span style={{ fontSize: "12px", color: "var(--ink-muted)" }}>
           &gt; Opens browser print / PDF export dialog
@@ -1703,7 +1745,7 @@ function Resume() {
           </div>
           <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#444" }}>
             &bull; Trained YOLOv8s computer vision model on 12,454 annotated
-            images (57 Filipino CPG classes) hitting 97.60% mAP@50.
+            images (57 Filipino CPG classes) hitting 89.26% in-store detection accuracy (97.60% mAP@50).
             <br />
             &bull; Quantized to TFLite for real-time offline smartphone scanning
             and integrated Gemini API for bilingual voice advice.
@@ -1787,7 +1829,7 @@ function Contact() {
   return (
     <>
       <Section>
-        <SectionLabel>$ ./contact.sh --connect</SectionLabel>
+        <SectionLabel cmd="$ ./contact.sh --connect">GET IN TOUCH</SectionLabel>
         <SelectedParagraph>
           Open to internships, entry-level opportunities in data analytics, and
           tech collaborations. Let's connect.
@@ -1865,7 +1907,7 @@ function Contact() {
           />
         </label>
         <BracketButton type="submit" disabled={status === "sending"}>
-          {status === "sending" ? "transmitting..." : "./send_message.sh"}
+          {status === "sending" ? "Transmitting..." : "Send Message"}
         </BracketButton>
         {status === "success" && (
           <p className="success" style={{ marginTop: "12px", lineHeight: 1.5 }}>
@@ -1925,7 +1967,7 @@ function Notes() {
 
   return (
     <Section>
-      <SectionLabel>$ ls -la engineering_logs/</SectionLabel>
+      <SectionLabel cmd="$ ls -la engineering_logs/">ENGINEERING LOGS &amp; WRITE-UPS</SectionLabel>
       <p className="indented muted">
         Behind-the-scenes engineering write-ups and technical methodologies.
       </p>
@@ -2012,7 +2054,7 @@ function Notes() {
 function NotFound({ navigate }: { navigate: (page: Page) => void }) {
   return (
     <section className="not-found">
-      <SectionLabel>$ cd /unknown</SectionLabel>
+      <SectionLabel cmd="$ cd /unknown">PAGE NOT FOUND (404)</SectionLabel>
       <div className="indented" style={{ marginTop: "24px" }}>
         <h1 style={{ display: "inline-block", margin: "0 0 24px" }}>
           &gt; Error 404: NO SUCH FILE OR DIRECTORY
@@ -2020,11 +2062,11 @@ function NotFound({ navigate }: { navigate: (page: Page) => void }) {
         <p style={{ color: "var(--ink-muted)", margin: "0 0 24px", lineHeight: 1.6 }}>
           &gt; The requested path does not exist in this environment.
           <br />
-          &gt; Run &apos;cd ~&apos; to return to the root working directory.
+          &gt; Use the button below to return to the home page.
         </p>
-        <button className="bracket-button" onClick={() => navigate("home")}>
-          <span data-label="cd ~">[ cd ~ ]</span>
-        </button>
+        <BracketButton onClick={() => navigate("home")}>
+          Return to Home
+        </BracketButton>
       </div>
     </section>
   )
