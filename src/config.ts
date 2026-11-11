@@ -37,6 +37,15 @@ export const PORTFOLIO_CONFIG = {
   // Additional public works from https://github.com/mardnts28
   otherWorks: [
     {
+      title: "HNL Latina Construction Website",
+      category: "Web",
+      description:
+        "Full-stack corporate platform and architectural cost estimator with Next.js, Sanity CMS, and PostgreSQL. In active development.",
+      githubUrl: "https://github.com/mardnts28/HNL-Construction",
+      tags: ["Next.js", "Sanity CMS", "PostgreSQL", "Ongoing"],
+      status: "ONGOING",
+    },
+    {
       title: "BantayKalusugan",
       category: "Health & Mobile",
       description:
@@ -59,14 +68,6 @@ export const PORTFOLIO_CONFIG = {
         "Academic task scheduling and intelligent study session optimizer.",
       githubUrl: "https://github.com/mardnts28/StudyOptimizer",
       tags: ["AI", "Algorithms", "Web"],
-    },
-    {
-      title: "AI-Recommender",
-      category: "Machine Learning",
-      description:
-        "Machine learning recommendation engine analyzing user behavior and preference vectors.",
-      githubUrl: "https://github.com/mardnts28/AI-Recommender",
-      tags: ["Machine Learning", "Python", "Data"],
     },
     {
       title: "FlipWise",

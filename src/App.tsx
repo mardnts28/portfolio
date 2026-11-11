@@ -406,17 +406,6 @@ const projects: Project[] = [
     page: "claro",
     category: "AI and Mobile",
   },
-  {
-    index: "04",
-    title: "HNL Construction Website",
-    summary:
-      "Production Next.js corporate portal with dynamic architectural cost estimator, Sanity CMS, PostgreSQL lead capture, and Resend transactional email — 100% Lighthouse score.",
-    metric: "100% Lighthouse",
-    tags: ["Next.js", "TypeScript", "Sanity CMS", "PostgreSQL"],
-    year: "2026",
-    page: "hnl",
-    category: "Web",
-  },
 ]
 
 function ProjectIndexRow({
@@ -613,10 +602,6 @@ function Home({ navigate }: { navigate: (page: Page) => void }) {
             [
               "Feb 2026",
               "Consolation Prize, Data & AI Inclusion Hackathon (Grundfos x TIP)",
-            ],
-            [
-              "Jul 2026",
-              "Freelance Full-Stack Developer, HNL Construction Website",
             ],
             [
               "Sep 2026",
@@ -840,7 +825,23 @@ function Projects({ navigate }: { navigate: (page: Page) => void }) {
             >
               <span className="project-index">&gt;</span>
               <div>
-                <strong>{work.title}</strong>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                  <strong>{work.title}</strong>
+                  {"status" in work && Boolean(work.status) && (
+                    <span
+                      style={{
+                        fontSize: "10px",
+                        fontWeight: 600,
+                        padding: "1px 6px",
+                        color: "var(--accent-cursor)",
+                        border: "1px solid var(--accent-cursor)",
+                        letterSpacing: "0.08em",
+                      }}
+                    >
+                      [ {work.status} ]
+                    </span>
+                  )}
+                </div>
                 <p
                   style={{
                     margin: "4px 0 0",
@@ -1040,247 +1041,6 @@ function CaseStudy({
         </InlineLink>
       </div>
     </>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Interactive Visualizer 3: HNL Construction Website Showcase
-// ---------------------------------------------------------------------------
-function HnlWebsiteShowcase() {
-  const [projectType, setProjectType] =
-    useState<"residential" | "commercial" | "warehouse">("residential")
-  const [area, setArea] = useState<number>(120)
-
-  const rates = {
-    residential: 24000,
-    commercial: 31000,
-    warehouse: 18500,
-  }
-
-  const total = area * rates[projectType]
-  const structural = Math.round(total * 0.45)
-  const architectural = Math.round(total * 0.35)
-  const mep = Math.round(total * 0.2)
-
-  const presets = [60, 120, 240, 360, 500]
-  const maxArea = 600
-  const barFilled = Math.min(20, Math.max(1, Math.round((area / maxArea) * 20)))
-  const progressBar =
-    "[" + "=".repeat(barFilled) + ">" + " ".repeat(Math.max(0, 20 - barFilled)) + "]"
-
-  return (
-    <div className="showcase-container">
-      <div className="showcase-header">
-        <span>[HNL] CLIENT COST ESTIMATION ENGINE</span>
-        <span>NEXT.JS &bull; SANITY CMS &bull; RESEND</span>
-      </div>
-      <div className="showcase-body">
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "24px",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: "13px",
-                fontWeight: 600,
-                marginBottom: "12px",
-              }}
-            >
-              &gt; Dynamic Quotation Calculator (TypeScript &bull; Sanity Studio)
-            </div>
-            <p
-              style={{
-                fontSize: "12px",
-                color: "var(--ink-muted)",
-                marginBottom: "16px",
-              }}
-            >
-              Built for HNL Construction to automate client bids, store inquiries
-              in PostgreSQL, and trigger transactional client emails via Resend.
-            </p>
-
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "14px" }}
-            >
-              <div>
-                <label
-                  style={{
-                    fontSize: "11px",
-                    display: "block",
-                    marginBottom: "6px",
-                    color: "var(--ink-muted)",
-                  }}
-                >
-                  $ select --project-classification:
-                </label>
-                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                  <button
-                    className={`telemetry-tab ${
-                      projectType === "residential" ? "active" : ""
-                    }`}
-                    onClick={() => setProjectType("residential")}
-                  >
-                    [ Residential ]
-                  </button>
-                  <button
-                    className={`telemetry-tab ${
-                      projectType === "commercial" ? "active" : ""
-                    }`}
-                    onClick={() => setProjectType("commercial")}
-                  >
-                    [ Commercial ]
-                  </button>
-                  <button
-                    className={`telemetry-tab ${
-                      projectType === "warehouse" ? "active" : ""
-                    }`}
-                    onClick={() => setProjectType("warehouse")}
-                  >
-                    [ Warehouse ]
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label
-                  style={{
-                    fontSize: "11px",
-                    display: "block",
-                    marginBottom: "6px",
-                    color: "var(--ink-muted)",
-                  }}
-                >
-                  $ set --floor-area: <strong>{area} SQM</strong>
-                </label>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "6px",
-                    flexWrap: "wrap",
-                    marginBottom: "8px",
-                  }}
-                >
-                  {presets.map((sqm) => (
-                    <button
-                      key={sqm}
-                      className={`telemetry-tab ${area === sqm ? "active" : ""}`}
-                      onClick={() => setArea(sqm)}
-                    >
-                      [ {sqm} SQM ]
-                    </button>
-                  ))}
-                  <button
-                    className="telemetry-tab"
-                    onClick={() => setArea((prev) => Math.max(40, prev - 20))}
-                    title="Decrease by 20 SQM"
-                  >
-                    [ -20 ]
-                  </button>
-                  <button
-                    className="telemetry-tab"
-                    onClick={() => setArea((prev) => Math.min(600, prev + 20))}
-                    title="Increase by 20 SQM"
-                  >
-                    [ +20 ]
-                  </button>
-                </div>
-                <div
-                  style={{
-                    fontFamily: "monospace",
-                    fontSize: "11px",
-                    color: "var(--accent-cursor)",
-                    letterSpacing: "0.08em",
-                  }}
-                  aria-hidden="true"
-                >
-                  SCALE: {progressBar} {area} / 600 SQM
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div
-            style={{
-              border: "1px dashed var(--ink-line)",
-              padding: "16px",
-              background: "rgba(169, 194, 176, 0.12)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "11px",
-                color: "var(--ink-muted)",
-                marginBottom: "8px",
-              }}
-            >
-              $ calculate --bid-breakdown:
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: "6px",
-                fontSize: "12px",
-              }}
-            >
-              <span>Structural Framing (45%):</span>
-              <strong>₱{structural.toLocaleString()}</strong>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: "6px",
-                fontSize: "12px",
-              }}
-            >
-              <span>Architectural Finishing (35%):</span>
-              <strong>₱{architectural.toLocaleString()}</strong>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: "12px",
-                fontSize: "12px",
-              }}
-            >
-              <span>MEP Engineering (20%):</span>
-              <strong>₱{mep.toLocaleString()}</strong>
-            </div>
-            <div
-              style={{
-                borderTop: "1px solid var(--ink-primary)",
-                paddingTop: "8px",
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: "14px",
-              }}
-            >
-              <strong>TOTAL ESTIMATE:</strong>
-              <strong style={{ color: "var(--ink-primary)" }}>
-                ₱{total.toLocaleString()} PHP
-              </strong>
-            </div>
-            <small
-              style={{
-                display: "block",
-                marginTop: "12px",
-                fontSize: "10px",
-                color: "var(--ink-muted)",
-              }}
-            >
-              &gt; Synced with Sanity Studio CMS for instant pricing updates
-              without code redeploys.
-            </small>
-          </div>
-        </div>
-      </div>
-    </div>
   )
 }
 
@@ -1649,7 +1409,7 @@ function Claro({ navigate }: { navigate: (page: Page) => void }) {
           external: true,
         },
       ]}
-      next={["cd ./hnl ->", "hnl"]}
+      next={["cd ../projects", "projects"]}
       navigate={navigate}
     />
   )
@@ -1658,30 +1418,31 @@ function Claro({ navigate }: { navigate: (page: Page) => void }) {
 function Hnl({ navigate }: { navigate: (page: Page) => void }) {
   return (
     <CaseStudy
-      title="HNL - Construction Website & Client Cost Estimator"
+      title="HNL Latina - Construction Website & Client Portal"
       meta={[
         ["Role", "Full-Stack Developer"],
-        ["Type", "Freelance Client Project"],
-        ["Date", "July 2026"],
+        ["Type", "Client Project"],
+        ["Status", "[ ONGOING DEVELOPMENT ]"],
+        ["Date", "2026 — Present"],
       ]}
       sections={[
         [
           "Overview",
-          "Built a responsive production web platform for a Philippine construction firm featuring an interactive architectural quotation calculator and product materials catalog.",
+          "A production web platform currently in active ongoing development for HNL Latina Construction featuring a modern architectural materials catalog and digital quotation tools.",
         ],
         [
           "Headless CMS Integration",
-          "Integrated Sanity Studio CMS so non-technical management can update featured building projects, catalog prices, and team personnel directly without writing code.",
+          "Configuring Sanity Studio CMS so non-technical management can maintain building projects, catalog prices, and team personnel directly without writing code.",
         ],
         [
-          "Backend & Reliability",
+          "Backend & Pipeline",
           "PostgreSQL database integration for bid lead storage and automated transactional customer notifications powered by Resend.",
         ],
       ]}
       stats={[
-        ["100%", "lighthouse performance & SEO"],
-        ["<1.2s", "average page load time"],
-        ["0", "code required for client content updates"],
+        ["ONGOING", "project development phase"],
+        ["Next.js", "core application framework"],
+        ["Sanity", "headless CMS integration"],
       ]}
       tools={[
         "Next.js",
@@ -1692,21 +1453,7 @@ function Hnl({ navigate }: { navigate: (page: Page) => void }) {
         "Sanity CMS",
         "Resend",
       ]}
-      showcase={
-        <ProjectMediaViewer
-          title="HNL Construction Platform"
-          simulator={<HnlWebsiteShowcase />}
-          imageSrc="/images/hnl-website.png"
-          imageAlt="HNL Construction Responsive Website & Sanity CMS Studio"
-        />
-      }
-      showcaseLabel="$ open hnl_estimator_preview"
       links={[
-        {
-          label: "HTTP: hnl-construction.com ->",
-          href: PORTFOLIO_CONFIG.projects.hnl.liveSiteUrl,
-          external: true,
-        },
         {
           label: "git remote: hnl (Next.js & Sanity) ->",
           href: PORTFOLIO_CONFIG.projects.hnl.githubUrl,
@@ -1758,7 +1505,7 @@ const skillGroups: Array<[string, string[], string]> = [
       "Firebase",
       "Sanity CMS",
     ],
-    "Applied in: HNL Construction Website, CLARO Admin Dashboard, and personal portfolio.",
+    "Applied in: CLARO Admin Dashboard, personal portfolio, and client web applications.",
   ],
 ]
 
@@ -1966,28 +1713,6 @@ function Resume() {
           </p>
         </div>
 
-        <div style={{ marginBottom: "12px" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: "13px",
-            }}
-          >
-            <strong>
-              HNL Construction Website &mdash; Full-Stack Client Platform
-            </strong>
-            <span>Jul 2026</span>
-          </div>
-          <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#444" }}>
-            &bull; Developed full-stack company portal using Next.js,
-            TypeScript, PostgreSQL, and Sanity Headless CMS.
-            <br />
-            &bull; Integrated automated construction cost calculator and Resend
-            API for instant transactional notifications.
-          </p>
-        </div>
-
         <div className="resume-section-title">Honors &amp; Awards</div>
         <p style={{ margin: "4px 0", fontSize: "12px" }}>
           &bull; <strong>Finalist &amp; Most Scalable Solution</strong> &mdash;
@@ -2190,11 +1915,11 @@ function Notes() {
         "Standard object detection models struggle with the specular glare of canned goods and deformed flexible noodle packaging under fluorescent supermarket lighting. For CLARO, we custom-trained a YOLOv8s architecture across 57 benchmark SKUs using 12,454 annotated frames. On-site pilot evaluation at Ever Plus Superstore (Sampaloc, Manila) verified 97.60% mAP@50 and 89.26% accuracy on 242 real-world captures, supporting multi-item scanning of up to 3 products at 20–30 cm. An on-device 3-tier cache and bilingual clinical rule engine allow Nutri-Score, NOVA, and FDA registration verification to operate seamlessly without cellular connectivity.",
     },
     {
-      title: "Performance Engineering & Dynamic Estimation for Corporate Web Portals",
+      title: "Production Architecture for Modern Headless Web Applications",
       summary:
-        "Architecting a 100% Lighthouse Next.js corporate portal with interactive architectural cost estimation, Sanity CMS, and automated lead capture.",
+        "Engineering responsive web applications with Next.js, Headless CMS, and transactional API pipelines.",
       content:
-        "For the HNL Construction platform, our goal was enterprise-grade web performance paired with self-service client estimation tools. We engineered a dynamic floor plan and materials calculator with live arithmetic in TypeScript, backed by Sanity Headless CMS for structured content management. Server-side rendering, responsive SVG blueprints, and atomic Tailwind CSS delivery achieved perfect 100/100 Lighthouse scores across performance, accessibility, best practices, and SEO, driving qualified client inquiries through PostgreSQL and Resend transactional email.",
+        "Architecting modern web portals requires balancing high-speed static generation with dynamic content authoring for non-technical stakeholders. By pairing Next.js App Router with Sanity Studio headless CMS, content editors can manage structured records without writing code or initiating server redeployments. Integrating type-safe API routes, database lead capture, and transactional email dispatch delivers fast performance and automated client workflows.",
     },
   ]
 
