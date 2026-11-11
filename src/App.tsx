@@ -2274,10 +2274,20 @@ function Notes() {
 function NotFound({ navigate }: { navigate: (page: Page) => void }) {
   return (
     <section className="not-found">
-      <h1>&gt; Error 404: Page not found</h1>
-      <button className="bracket-button" onClick={() => navigate("home")}>
-        <span data-label="cd ~">[ cd ~ ]</span>
-      </button>
+      <SectionLabel>$ cd /unknown</SectionLabel>
+      <div className="indented" style={{ marginTop: "24px" }}>
+        <h1 style={{ display: "inline-block", margin: "0 0 24px" }}>
+          &gt; Error 404: NO SUCH FILE OR DIRECTORY
+        </h1>
+        <p style={{ color: "var(--ink-muted)", margin: "0 0 24px", lineHeight: 1.6 }}>
+          &gt; The requested path does not exist in this environment.
+          <br />
+          &gt; Run &apos;cd ~&apos; to return to the root working directory.
+        </p>
+        <button className="bracket-button" onClick={() => navigate("home")}>
+          <span data-label="cd ~">[ cd ~ ]</span>
+        </button>
+      </div>
     </section>
   )
 }
@@ -2330,7 +2340,13 @@ function Boot({ onDone }: { onDone: () => void }) {
 }
 
 function App() {
-  const [page, setPage] = useState<Page>(() => routes[getCleanPath()] || "home")
+  const getInitialPage = (): Page => {
+    const clean = getCleanPath()
+    if (clean === "/" || clean === "") return "home"
+    return routes[clean] || "404"
+  }
+
+  const [page, setPage] = useState<Page>(getInitialPage)
   const [menuOpen, setMenuOpen] = useState(false)
   const [wiping, setWiping] = useState(false)
   const [booting, setBooting] = useState(
@@ -2338,7 +2354,11 @@ function App() {
   )
 
   useEffect(() => {
-    const pop = () => setPage(routes[getCleanPath()] || "home")
+    const pop = () => {
+      const clean = getCleanPath()
+      if (clean === "/" || clean === "") setPage("home")
+      else setPage(routes[clean] || "404")
+    }
     window.addEventListener("popstate", pop)
     window.addEventListener("hashchange", pop)
     return () => {
