@@ -86,6 +86,6 @@ export const PORTFOLIO_CONFIG = {
     },
   ],
   contact: {
-    web3formsAccessKey: "dfe99261-c6c2-4d61-8d91-4734b2f6c8b9",
+    web3formsAccessKey: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "",
   },
 } as const

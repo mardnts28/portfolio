@@ -2015,6 +2015,19 @@ function Contact() {
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
+    const accessKey = PORTFOLIO_CONFIG.contact.web3formsAccessKey
+    if (!accessKey) {
+      // Fallback directly to mailto if env variable is not configured
+      const mailtoUrl = `mailto:${PORTFOLIO_CONFIG.profile.email}?subject=Portfolio Inquiry from ${encodeURIComponent(
+        formData.name.trim(),
+      )}&body=${encodeURIComponent(
+        `From: ${formData.name.trim()} (${formData.email.trim()})\n\nMessage:\n${formData.message.trim()}`,
+      )}`
+      window.location.href = mailtoUrl
+      setStatus("success")
+      return
+    }
+
     setStatus("sending")
     try {
       const response = await fetch("https://api.web3forms.com/submit", {
@@ -2024,7 +2037,7 @@ function Contact() {
           Accept: "application/json",
         },
         body: JSON.stringify({
-          access_key: PORTFOLIO_CONFIG.contact.web3formsAccessKey,
+          access_key: accessKey,
           name: formData.name.trim(),
           email: formData.email.trim(),
           message: formData.message.trim(),
