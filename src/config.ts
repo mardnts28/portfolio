@@ -12,6 +12,7 @@ export const PORTFOLIO_CONFIG = {
     school: "Technological Institute of the Philippines - Manila",
     expectedGraduation: "2027",
     email: "maryfaithardientes13@gmail.com",
+    phone: "09569969023",
     linkedin: "https://www.linkedin.com/in/mary-ardientes-aa8598315",
     githubUsername: "mardnts28",
     githubUrl: "https://github.com/mardnts28",

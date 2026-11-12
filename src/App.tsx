@@ -1622,148 +1622,157 @@ function Resume() {
 
   return (
     <Section>
-      <SectionLabel cmd="$ cat resume.pdf | lpr">CURRICULUM VITAE / RESUME</SectionLabel>
-      <div
-        className="indented"
-        style={{ display: "flex", gap: "12px", alignItems: "center" }}
-      >
-        <BracketButton onClick={handlePrint}>
-          Print / Save PDF
-        </BracketButton>
-        <span style={{ fontSize: "12px", color: "var(--ink-muted)" }}>
-          &gt; Opens browser print / PDF export dialog
-        </span>
+      <div className="no-print">
+        <SectionLabel cmd="$ cat resume.pdf | lpr">CURRICULUM VITAE / RESUME</SectionLabel>
+        <div
+          className="indented"
+          style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "20px" }}
+        >
+          <BracketButton onClick={handlePrint}>
+            Print / Save PDF
+          </BracketButton>
+          <span style={{ fontSize: "12px", color: "var(--ink-muted)" }}>
+            &gt; Opens browser print / PDF export dialog
+          </span>
+        </div>
       </div>
 
       <div className="resume-paper" id="resume-print-area">
         <div className="resume-header">
-          <h2
-            style={{
-              margin: "0 0 6px",
-              fontSize: "22px",
-              letterSpacing: "0.05em",
-            }}
-          >
-            {PORTFOLIO_CONFIG.profile.name}
-          </h2>
-          <p style={{ margin: 0, fontSize: "12px", color: "#444" }}>
-            {PORTFOLIO_CONFIG.profile.location} &bull;{" "}
-            <a href={`mailto:${PORTFOLIO_CONFIG.profile.email}`}>
-              {PORTFOLIO_CONFIG.profile.email}
+          <h2>Mary Faith P. Ardientes</h2>
+          <p>
+            <a href="mailto:maryfaithardientes13@gmail.com">
+              maryfaithardientes13@gmail.com
             </a>{" "}
-            &bull;{" "}
+            &#9670; 09569969023 &#9670; Manila, Philippines &#9670;{" "}
             <a
-              href={PORTFOLIO_CONFIG.profile.linkedin}
+              href="https://www.linkedin.com/in/mary-ardientes-aa8598315"
               target="_blank"
               rel="noopener noreferrer"
             >
-              LinkedIn
-            </a>{" "}
-            &bull;{" "}
-            <a
-              href={PORTFOLIO_CONFIG.profile.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              GitHub
+              www.linkedin.com/in/mary-ardientes-aa8598315
             </a>
           </p>
         </div>
 
+        <div className="resume-section-title">Professional Summary</div>
+        <p className="resume-summary-text">
+          Information Technology student and aspiring data analyst with hands-on
+          experience in predictive analytics, dashboard development, and machine
+          learning. Proven ability to deliver data-driven insights and project
+          solutions through participation in hackathons and collaborative projects.
+        </p>
+
+        <div className="resume-section-title">Work Experience</div>
+
+        <div className="resume-item">
+          <div className="resume-item-header">
+            <strong>
+              Philippine Rice Market Outlook: A Predictive Analytics Dashboard for Price Forecasting
+            </strong>
+            <span className="resume-item-date">September 2026</span>
+          </div>
+          <div className="resume-item-header" style={{ marginTop: "1px" }}>
+            <strong>and Regional Yield Risk</strong>
+          </div>
+          <div className="resume-item-role">
+            Data Analyst
+          </div>
+          <ul>
+            <li>
+              Engineered an automated Python ETL pipeline merging PSA, PhilRice, and NASA POWER data across 18 regions.
+            </li>
+            <li>
+              Forecasted retail rice prices six months ahead using an additive Holt-Winters model, achieving a 3.6% backtest MAPE with 95% prediction intervals.
+            </li>
+            <li>
+              Designed an interactive Power BI dashboard using a star-schema model and custom DAX measures, visualizing regional price outlooks and rainfall-yield correlation (r = &minus;0.09).
+            </li>
+          </ul>
+        </div>
+
+        <div className="resume-item">
+          <div className="resume-item-header">
+            <strong>
+              CLARO: An AI-Powered Mobile Application for Health-Informed Decision-Making
+            </strong>
+            <span className="resume-item-date">October 2026</span>
+          </div>
+          <div className="resume-item-role">
+            Project Manager &amp; Quality Lead
+          </div>
+          <ul>
+            <li>
+              Led a 3-person team developing an on-device Flutter mobile app with a Firebase backend and a React admin dashboard, successfully piloted at Ever Plus Superstore in Manila.
+            </li>
+            <li>
+              Fine-tuned a custom YOLOv8s model on 12,454 annotated images across 57 product classes, achieving 97.60% mAP@50 on test data and 89.26% real-world in-store detection accuracy; deployed via TensorFlow Lite FP32.
+            </li>
+            <li>
+              Integrated on-device bilingual dietary advisories (WHO/NIDDK thresholds) with Gemini-powered OCR and voice assistance, achieving an 84% independent shopper completion rate and a 4.68/5.00 UAT rating (n = 50).
+            </li>
+          </ul>
+        </div>
+
+        <div className="resume-item">
+          <div className="resume-item-header">
+            <strong>
+              Predictive Agentic RAG System for 30-Day Readmission Risk in Diabetic Inpatients
+            </strong>
+            <span className="resume-item-date">November 2026</span>
+          </div>
+          <div className="resume-item-role">
+            Machine Learning &amp; RAG Developer
+          </div>
+          <ul>
+            <li>
+              Built an end-to-end 30-day hospital readmission risk model (XGBoost, scikit-learn) on 99,340 clinical encounters from the UCI Diabetes dataset, achieving 0.676 AUROC with SHAP feature interpretability.
+            </li>
+            <li>
+              Calibrated risk bands using isotonic regression; the high-risk band was readmitted at 27.0% vs. 11.3% overall.
+            </li>
+            <li>
+              Implemented a hybrid retrieval RAG pipeline (ChromaDB vector embeddings, BM25 keyword search, and Reciprocal Rank Fusion) over AHRQ clinical guidelines, achieving 0.90 Recall@5 versus 0.80 for vector-only retrieval.
+            </li>
+            <li>
+              Ran fairness screening across age, gender, and race groups, comparing recall and AUROC to flag gaps.
+            </li>
+          </ul>
+        </div>
+
         <div className="resume-section-title">Education</div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: "13px",
-          }}
-        >
-          <strong>Technological Institute of the Philippines - Manila</strong>
-          <span>Expected 2027</span>
-        </div>
-        <p style={{ margin: "2px 0 12px", fontSize: "12px", color: "#444" }}>
-          Bachelor of Science in Information Technology (BS IT)
-        </p>
 
-        <div className="resume-section-title">Technical Expertise</div>
-        <p style={{ margin: "4px 0", fontSize: "12px" }}>
-          <strong>Languages &amp; Core:</strong> Python, R, SQL, TypeScript,
-          JavaScript, DAX, Dart
-        </p>
-        <p style={{ margin: "4px 0", fontSize: "12px" }}>
-          <strong>Data &amp; Analytics:</strong> Power BI, Tableau, Pandas,
-          Excel, Time-Series Forecasting (Holt-Winters), Star-Schema
-        </p>
-        <p style={{ margin: "4px 0", fontSize: "12px" }}>
-          <strong>Frameworks &amp; AI:</strong> React 19, Next.js, Flutter,
-          YOLOv8, TensorFlow Lite, Gemini API, Tailwind CSS
-        </p>
-        <p style={{ margin: "4px 0", fontSize: "12px" }}>
-          <strong>Databases &amp; Cloud:</strong> PostgreSQL, Firebase,
-          Supabase, Sanity CMS, Git/GitHub
-        </p>
-
-        <div className="resume-section-title">Key Projects</div>
-        <div style={{ marginBottom: "12px" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: "13px",
-            }}
-          >
-            <strong>
-              Philippine Rice Market Outlook &mdash; Predictive Analytics
-              Dashboard
-            </strong>
-            <span>Sep 2026</span>
+        <div className="resume-edu-item">
+          <div className="resume-item-header">
+            <strong>Technological Institute of the Philippines - Manila</strong>
+            <span className="resume-item-date">Expected Graduation - 2027</span>
           </div>
-          <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#444" }}>
-            &bull; Extracted and harmonized climate &amp; agricultural data from
-            PSA, PhilRice, and NASA POWER across 18 Philippine regions.
-            <br />
-            &bull; Built Holt-Winters time-series forecasts with 95% confidence
-            intervals achieving 3.6% backtest MAPE.
-            <br />
-            &bull; Designed interactive Power BI dashboards with DAX measures
-            for executive regional price telemetry.
-          </p>
-        </div>
-
-        <div style={{ marginBottom: "12px" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: "13px",
-            }}
-          >
-            <strong>
-              CLARO: AI Mobile Food Advisory Application &mdash; Capstone PM
-            </strong>
-            <span>Nov 2026</span>
+          <div className="resume-edu-sub">
+            <span>Bachelor of Science in Information Technology</span>
+            <span>Manila, Philippines</span>
           </div>
-          <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#444" }}>
-            &bull; Trained YOLOv8s computer vision model on 12,454 annotated
-            images (57 Filipino CPG classes) hitting 89.26% in-store detection accuracy (97.60% mAP@50).
-            <br />
-            &bull; Quantized to TFLite for real-time offline smartphone scanning
-            and integrated Gemini API for bilingual voice advice.
-            <br />
-            &bull; Conducted grocery field study with 50 shoppers resulting in
-            4.68/5 satisfaction and 84% independent task success.
-          </p>
         </div>
 
-        <div className="resume-section-title">Honors &amp; Awards</div>
-        <p style={{ margin: "4px 0", fontSize: "12px" }}>
-          &bull; <strong>Finalist &amp; Most Scalable Solution</strong> &mdash;
-          Safety by Design Showcase, Development Gateway (IREX), Jan 2026
-        </p>
-        <p style={{ margin: "4px 0", fontSize: "12px" }}>
-          &bull; <strong>Consolation Prize</strong> &mdash; Data &amp; AI
-          Inclusion Hackathon, Grundfos x TIP TechnoCoRe, Feb 2026
-        </p>
+        <div className="resume-edu-item">
+          <div className="resume-item-header">
+            <strong>STEM</strong>
+            <span className="resume-item-date">2021 - 2023</span>
+          </div>
+          <div className="resume-edu-sub">
+            <span>Senior High School</span>
+            <span>Arellano University - Juan Sumulong Campus, Manila, Philippines</span>
+          </div>
+        </div>
+
+        <div className="resume-section-title">Certifications &amp; Skills</div>
+        <ul className="resume-skills-list">
+          <li>
+            <strong>Skills:</strong> Data Analysis; Predictive Analytics; Dashboard Development; Python; R; Power BI; Tableau; Machine Learning; SQL; Data Cleaning; Data Visualization; Communication; Attention to Detail; Project Management; Team Leadership
+          </li>
+          <li>
+            <strong>Certifications:</strong> Finalist, Safety by Design Showcase, Development Gateway (IREX), January 2026; Most Scalable SbD Solution (Special Recognition), Development Gateway (IREX), January 2026; Consolation Prize, Data &amp; AI Inclusion Hackathon, Grundfos x TIP TechnoCoRe, February 2026
+          </li>
+        </ul>
       </div>
     </Section>
   )
